@@ -11,6 +11,9 @@
   // Allow all actions without prompts
   "permission": "allow",
 
+  // Dissable Providers
+  "disabled_providers": [],
+
   // Plugins to load
   "plugin": [
     "@mohak34/opencode-notifier@latest",
@@ -40,40 +43,52 @@
       "model": "opencode-go/glm-5.1",
       "color": "#7AA2F7",
       "description": "Reasoning architect for decomposition and design decisions",
-      "permission": "ask",
+      "permission": {
+        "*": "ask",
+      },
     },
     "forge": {
       "model": "opencode-go/qwen3.6-plus",
       "color": "#9ECE6A",
       "description": "High-precision implementation specialist",
-      "permission": "ask",
+      "permission": {
+        "*": "ask",
+      },
     },
     "nexus": {
       "model": "opencode-go/kimi-k2.6",
       "color": "#73DACA",
       "description": "Large-context analyzer for multi-file understanding",
-      "permission": "ask",
+      "permission": {
+        "*": "ask",
+      },
     },
     "ultra": {
       "model": "opencode-go/mimo-v2.5-pro",
       "color": "#F7768E",
       "description": "Heavy refactor and structural transformation specialist",
-      "permission": "ask",
+      "permission": {
+        "*": "ask",
+      },
     },
     "pilot": {
       "model": "opencode-go/minimax-m2.7",
       "color": "#7DCFFF",
       "description": "Tool and execution specialist for tests/builds/scripts",
-      "permission": "ask",
+      "permission": {
+        "*": "ask",
+      },
     },
     "spark": {
       "model": "opencode-go/deepseek-v4-flash",
       "color": "#C0CAF5",
       "description": "Low-latency agent for quick tasks",
-      "permission": "ask",
+      "permission": {
+        "*": "ask",
+      },
     },
     "free": {
-      "model": "opencode/deepseek-v4-flash-free",
+      "model": "opencode/big-pickle",
       "color": "#BBAA33",
     },
   },

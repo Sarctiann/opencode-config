@@ -1,5 +1,9 @@
-node_modules/
-opencode-notifier-state.json
-bun.lock
+package.json
 package-lock.json
-tui.json
+bun.lock
+node_modules/
+
+.server_credentials
+
+docs/superpowers/
+opencode-notifier-state.json
