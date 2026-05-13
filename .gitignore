@@ -1,0 +1,5 @@
+node_modules/
+opencode-notifier-state.json
+bun.lock
+package-lock.json
+tui.json

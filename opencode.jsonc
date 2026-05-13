@@ -1,0 +1,106 @@
+{
+  // Schema for OpenCode configuration
+  "$schema": "https://opencode.ai/config.json",
+
+  // Username for the OpenCode instance
+  "username": "Sebastian",
+
+  // Enable automatic updates
+  "autoupdate": true,
+
+  // Allow all actions without prompts
+  "permission": "allow",
+
+  // Plugins to load
+  "plugin": [
+    "@mohak34/opencode-notifier@latest",
+    "superpowers@git+https://github.com/obra/superpowers.git",
+  ],
+
+  // Agent-specific model configuration
+  "agent": {
+    // Built-in agents with specific models and colors
+    "build": {
+      "model": "opencode-go/qwen3.6-plus",
+      "color": "secondary",
+    },
+    "plan": {
+      "model": "opencode-go/glm-5.1",
+      "color": "accent",
+    },
+    // Built-in subagents that use the same model as their parent agent
+    "explore": {
+      "model": "opencode-go/kimi-k2.6",
+    },
+    "general": {
+      "model": "opencode-go/minimax-m2.5",
+    },
+    // Custom agents with specific models and colors
+    "logic": {
+      "model": "opencode-go/glm-5.1",
+      "color": "#7AA2F7",
+      "description": "Reasoning architect for decomposition and design decisions",
+      "permission": "ask",
+    },
+    "forge": {
+      "model": "opencode-go/qwen3.6-plus",
+      "color": "#9ECE6A",
+      "description": "High-precision implementation specialist",
+      "permission": "ask",
+    },
+    "nexus": {
+      "model": "opencode-go/kimi-k2.6",
+      "color": "#73DACA",
+      "description": "Large-context analyzer for multi-file understanding",
+      "permission": "ask",
+    },
+    "ultra": {
+      "model": "opencode-go/mimo-v2.5-pro",
+      "color": "#F7768E",
+      "description": "Heavy refactor and structural transformation specialist",
+      "permission": "ask",
+    },
+    "pilot": {
+      "model": "opencode-go/minimax-m2.7",
+      "color": "#7DCFFF",
+      "description": "Tool and execution specialist for tests/builds/scripts",
+      "permission": "ask",
+    },
+    "spark": {
+      "model": "opencode-go/deepseek-v4-flash",
+      "color": "#C0CAF5",
+      "description": "Low-latency agent for quick tasks",
+      "permission": "ask",
+    },
+    "free": {
+      "model": "opencode/deepseek-v4-flash-free",
+      "color": "#BBAA33",
+    },
+  },
+
+  // MCP servers configuration
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "@playwright/mcp@latest"],
+      "enabled": true,
+    },
+    "augment-context-engine": {
+      "type": "local",
+      "command": ["auggie", "--mcp", "--mcp-auto-workspace"],
+      "enabled": true,
+    },
+    // Neovim MCP server for buffer access and editing (bigcodegen)
+    "neovim": {
+      "type": "local",
+      "command": ["npx", "-y", "mcp-neovim-server"],
+      "enabled": false,
+      "environment": {
+        // Enable shell commands execution through vim
+        "ALLOW_SHELL_COMMANDS": "true",
+        // Socket path for neovim connection (uses NVIM env var)
+        "NVIM_SOCKET_PATH": "{env:NVIM}",
+      },
+    },
+  },
+}
