@@ -14,6 +14,23 @@
   // Dissable Providers
   "disabled_providers": [],
 
+  // Provider model filters - hide duplicates from opencode (Zen) that exist in opencode-go
+  "provider": {
+    "opencode": {
+      "blacklist": [
+        "minimax-m2.5",
+        "minimax-m2.7",
+        "glm-5",
+        "glm-5.1",
+        "kimi-k2.5",
+        "kimi-k2.6",
+        "nemotron-3-super-free",
+        "qwen3.5-plus",
+        "qwen3.6-plus",
+      ],
+    },
+  },
+
   // Plugins to load
   "plugin": [
     "@mohak34/opencode-notifier@latest",
@@ -44,7 +61,7 @@
       "color": "#7AA2F7",
       "description": "Reasoning architect for decomposition and design decisions",
       "permission": {
-        "*": "ask",
+        "skill": { "*": "ask" },
       },
     },
     "forge": {
@@ -52,7 +69,7 @@
       "color": "#9ECE6A",
       "description": "High-precision implementation specialist",
       "permission": {
-        "*": "ask",
+        "skill": { "*": "ask" },
       },
     },
     "nexus": {
@@ -60,7 +77,7 @@
       "color": "#73DACA",
       "description": "Large-context analyzer for multi-file understanding",
       "permission": {
-        "*": "ask",
+        "skill": { "*": "ask" },
       },
     },
     "ultra": {
@@ -68,7 +85,7 @@
       "color": "#F7768E",
       "description": "Heavy refactor and structural transformation specialist",
       "permission": {
-        "*": "ask",
+        "skill": { "*": "ask" },
       },
     },
     "pilot": {
@@ -76,7 +93,7 @@
       "color": "#7DCFFF",
       "description": "Tool and execution specialist for tests/builds/scripts",
       "permission": {
-        "*": "ask",
+        "skill": { "*": "ask" },
       },
     },
     "spark": {
@@ -84,7 +101,7 @@
       "color": "#C0CAF5",
       "description": "Low-latency agent for quick tasks",
       "permission": {
-        "*": "ask",
+        "skill": { "*": "ask" },
       },
     },
     "free": {
