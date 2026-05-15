@@ -30,9 +30,7 @@ After any edit, open, or navigation: leave the buffer focused so the user sees t
 | `vim_status` | `neovim_vim_status` | Current buffer, cursor, mode, LSP clients, window layout |
 | `vim_buffer` | `neovim_vim_buffer` | Read buffer contents (optionally by filename) |
 | `vim_buffer_switch` | `neovim_vim_buffer_switch` | Switch to buffer by name or number |
-| `vim_buffer_save` | `neovim_vim_buffer_save` | Save current or named buffer |
 | `vim_file_open` | `neovim_vim_file_open` | Open a file into a new buffer |
-| `vim_edit` | `neovim_vim_edit` | Insert / replace / replaceAll lines |
 | `vim_command` | `neovim_vim_command` | Run any Vim command (`:norm`, `:e`, `:bd`, `!shell`) |
 | `vim_search` | `neovim_vim_search` | Regex search within current buffer |
 | `vim_search_replace` | `neovim_vim_search_replace` | Find-and-replace in current buffer |
@@ -45,27 +43,23 @@ After any edit, open, or navigation: leave the buffer focused so the user sees t
 | `vim_jump` | `neovim_vim_jump` | Jump list navigation (back/forward/list) |
 | `vim_health` | `neovim_vim_health` | Connection health check |
 
-**Note:** `vim_mark` and `vim_visual` are BROKEN (MCP server bug with type coercion). Use `vim_command` equivalents instead (see below).
+**Deprecated tools** (avoid using):
+- `vim_edit` — unreliable with line-number based editing; use native `edit`/`write` tools instead
+- `vim_buffer_save` — use native `write` tool instead
+- `vim_mark` and `vim_visual` — BROKEN (MCP server bug with type coercion). Use `vim_command` equivalents instead (see below).
 
 ---
 
 ## ⚠️ Known Issues
 
-### `vim_edit` — Buffer Must Be Active and Modifiable
+### `vim_edit` — Unreliable, Use Native Tools Instead
 
-`neovim_vim_edit` fails with E21 ("Cannot make changes, 'modifiable' is off") on:
-- OpenCode's UI buffer (always `nomodifiable`)
-- Buffers opened as read-only
-- Buffers in terminal mode
+`neovim_vim_edit` uses line-number based editing which fails when:
+- Buffer content changed between read and edit
+- Buffer is `nomodifiable` (e.g., OpenCode's UI buffer)
+- Buffer is not the active buffer (replaceAll silently fails)
 
-**Fix:** Before editing:
-1. Verify target buffer is active via `neovim_vim_status` (check `fileName` field)
-2. If wrong buffer: `neovim_vim_buffer_switch` to target
-3. If `nomodifiable`: `neovim_vim_command(":set modifiable")`
-
-### `vim_edit` replaceAll — Only Works on Active Buffer
-
-`replaceAll` mode silently fails when the target buffer is not the active buffer. Use `replace` mode instead for targeted line replacement.
+**Fix:** Use native `edit`/`write` tools to modify files, then reload the buffer in Neovim. See "Edit & Reload" below.
 
 ### `vim_mark` and `vim_visual` — BROKEN
 
@@ -92,19 +86,22 @@ If the search pattern has no matches, Vim returns error E480. This is expected b
 
 ---
 
-## Edit Protocol (Canonical Workflow)
+## Edit & Reload (Canonical Workflow)
 
-**Always follow this sequence for any edit operation:**
+**Use native tools to edit, then reload the buffer in Neovim:**
 
-1. `neovim_vim_status` → confirm `fileName` matches target and `mode` is normal
-2. If wrong buffer → `neovim_vim_buffer_switch` to target by name or number
-3. If `nomodifiable` → `neovim_vim_command(":set modifiable")`
-4. `neovim_vim_buffer` → read current content (always refresh before editing)
-5. `neovim_vim_edit` with `replace` mode at the correct `startLine`
-6. `neovim_vim_buffer_save` → persist
-7. `neovim_vim_buffer` → verify edit applied correctly
+1. Use native `edit` or `write` tool to modify the file on disk
+2. Run the formatter as configured for the project
+3. Reload the buffer in Neovim:
+   - For the current buffer: `neovim_vim_command(":e")`
+   - For all changed buffers: `neovim_vim_command(":checktime")`
+4. Open the file in Neovim so the user sees it: `neovim_vim_file_open` or `neovim_vim_command(":e <path>")`
 
-**Never edit a buffer you haven't first read and confirmed is active.**
+This approach is more reliable than `vim_edit` because:
+- Native tools use string matching, not line numbers
+- No risk of editing the wrong buffer
+- No `nomodifiable` issues
+- The file is always in sync with disk
 
 ---
 
@@ -113,20 +110,22 @@ If the search pattern has no matches, Vim returns error E480. This is expected b
 ### "What's happening on line X?"
 
 1. `neovim_vim_status` → get active filename and cursor.
-2. `neovim_vim_buffer` (no arg) → read current buffer.
+2. `neovim_vim_buffer` (with filename) → read the target buffer.
 3. Use LSP info from `neovim_vim_status` (attached clients) to reason about diagnostics if needed.
 4. Respond with context from that file.
 
 ### "Modify / fix X"
 
-1. Follow the Edit Protocol above.
-2. Leave focus on the edited buffer.
+1. Use native `edit` tool to modify the file.
+2. Run the formatter as configured.
+3. Reload buffer: `neovim_vim_command(":e")` or `:checktime`.
+4. Open file in Neovim: `neovim_vim_file_open`.
 
 ### "Search and replace all references to Y"
 
 1. `neovim_vim_grep` pattern → populates quickfix list (user sees all matches).
 2. For buffer-local replace: `neovim_vim_search_replace` with pattern and replacement.
-3. For project-wide replace: iterate quickfix results, open each buffer, apply replacement, save.
+3. For project-wide replace: iterate quickfix results, open each buffer, apply native `edit`, reload with `:e`.
 4. Prefer `vim_grep` first — it improves UX by showing the quickfix list before changes.
 
 ### "Open files related to Z"
@@ -175,9 +174,9 @@ Open quickfix after populating: `neovim_vim_command(":copen")`.
 
 | Mistake | Fix |
 | ------- | --- |
-| Editing a file with Write tool instead of `vim_edit` | Always use `neovim_vim_edit` + `neovim_vim_buffer_save` when Neovim MCP is active |
-| Not opening the file after editing | Call `neovim_vim_file_open` or `neovim_vim_command :e` so user sees the result |
+| Using `vim_edit` instead of native tools | Use native `edit`/`write` + `:e` to reload |
+| Not reloading buffer after native edit | Call `neovim_vim_command(":e")` or `:checktime` after editing |
+| Not opening the file after editing | Call `neovim_vim_file_open` or `neovim_vim_command(":e")` so user sees the result |
 | Skipping quickfix for project-wide ops | Use `neovim_vim_grep` first, then open quickfix |
-| Assuming buffer = disk file | Call `neovim_vim_buffer_save` explicitly after edits |
 | Ignoring LSP clients | Check `neovim_vim_status` for `lspInfo` before reasoning about code symbols |
-| Editing without verifying buffer is active | Follow the Edit Protocol above |
+| Using `vim_mark` or `vim_visual` | These are broken — use `neovim_vim_command` equivalents instead |
