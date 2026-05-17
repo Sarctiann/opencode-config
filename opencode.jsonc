@@ -57,7 +57,7 @@
     },
     // Custom agents with specific models and colors
     "logic": {
-      "model": "opencode-go/glm-5.1",
+      "model": "opencode-go/deepseek-v4-pro",
       "color": "#7AA2F7",
       "description": "Reasoning architect for decomposition and design decisions",
       "permission": {

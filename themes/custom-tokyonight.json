@@ -1,11 +1,12 @@
 {
   "$schema": "https://opencode.ai/theme.json",
   "defs": {
-    "darkGray0": "#1e2030",
-    "darkGray1": "#222436",
-    "darkGray2": "#545c7e",
-    "darkGray3": "#737aa2",
-    "darkGray4": "#9099b2",
+    "darkGray0": "#1a1b26",
+    "darkGray1": "#1e2030",
+    "darkGray2": "#222436",
+    "darkGray3": "#545c7e",
+    "darkGray4": "#737aa2",
+    "darkGray5": "#9099b2",
     "lightGray0": "#e1e2e7",
     "lightGray1": "#d5d6db",
     "lightGray2": "#c8c9ce",
@@ -84,27 +85,27 @@
       "light": "lightSlate"
     },
     "background": {
-      "dark": "inherit",
+      "dark": "darkGray0",
       "light": "lightGray0"
     },
     "backgroundPanel": {
-      "dark": "darkGray0",
+      "dark": "darkGray1",
       "light": "lightGray1"
     },
     "backgroundElement": {
-      "dark": "darkGray1",
+      "dark": "darkGray2",
       "light": "lightGray2"
     },
     "border": {
-      "dark": "darkGray3",
+      "dark": "darkGray4",
       "light": "lightGray3"
     },
     "borderActive": {
-      "dark": "darkGray4",
+      "dark": "darkGray5",
       "light": "lightGray4"
     },
     "borderSubtle": {
-      "dark": "darkGray2",
+      "dark": "darkGray3",
       "light": "lightGray2"
     },
     "diffAdded": {
@@ -140,7 +141,7 @@
       "light": "lightBlush"
     },
     "diffContextBg": {
-      "dark": "darkGray0",
+      "dark": "darkGray1",
       "light": "lightGray1"
     },
     "diffLineNumber": {
@@ -249,4 +250,3 @@
     }
   }
 }
-
