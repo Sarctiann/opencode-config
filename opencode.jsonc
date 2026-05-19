@@ -42,63 +42,66 @@
     "build": {
       "model": "opencode-go/qwen3.6-plus",
       "color": "secondary",
+      "description": "[$$  | !! ] Default agent for general coding and building tasks",
     },
     "plan": {
       "model": "opencode-go/glm-5.1",
       "color": "accent",
+      "description": "[$$$ | !  ] Strategic planner for architecture and implementation plans",
     },
-    // Built-in subagents that use the same model as their parent agent
     "explore": {
-      "model": "opencode-go/kimi-k2.6",
+      "model": "opencode-go/minimax-m2.5",
+      "description": "[$   | !!!] Fast codebase exploration and information gathering",
     },
     "general": {
-      "model": "opencode-go/minimax-m2.5",
+      "model": "opencode-go/qwen3.5-plus",
+      "description": "[$   | !!!] General-purpose assistant for everyday tasks",
     },
     // Custom agents with specific models and colors
-    "logic": {
+    "z-logic": {
       "model": "opencode-go/deepseek-v4-pro",
       "color": "#7AA2F7",
-      "description": "Reasoning architect for decomposition and design decisions",
+      "description": "[$$  | !! ] Reasoning architect for decomposition and design decisions",
       "permission": {
         "skill": { "*": "ask" },
       },
     },
-    "forge": {
-      "model": "opencode-go/qwen3.6-plus",
+    "z-forge": {
+      "model": "opencode-go/mimo-v2.5-pro",
       "color": "#9ECE6A",
-      "description": "High-precision implementation specialist",
+      "description": "[$$$ | !  ] High-precision implementation specialist",
       "permission": {
         "skill": { "*": "ask" },
       },
     },
-    "nexus": {
+    "z-nexus": {
       "model": "opencode-go/kimi-k2.6",
       "color": "#73DACA",
-      "description": "Large-context analyzer for multi-file understanding",
+      "description": "[$$$ | !  ] Large-context analyzer for multi-file understanding",
       "permission": {
         "skill": { "*": "ask" },
       },
     },
-    "ultra": {
-      "model": "opencode-go/mimo-v2.5-pro",
-      "color": "#F7768E",
-      "description": "Heavy refactor and structural transformation specialist",
-      "permission": {
-        "skill": { "*": "ask" },
-      },
-    },
-    "pilot": {
+    "z-ultra": {
       "model": "opencode-go/minimax-m2.7",
-      "color": "#7DCFFF",
-      "description": "Tool and execution specialist for tests/builds/scripts",
+      "color": "#F7768E",
+      "description": "[$$  | !!!] Heavy refactor and structural transformation specialist",
       "permission": {
         "skill": { "*": "ask" },
       },
     },
-    "spark": {
+    "z-pilot": {
+      "model": "opencode-go/glm-5",
+      "color": "#7DCFFF",
+      "description": "[$$$ | !  ] Tool and execution specialist for tests/builds/scripts",
+      "permission": {
+        "skill": { "*": "ask" },
+      },
+    },
+    "z-spark": {
       "model": "opencode-go/deepseek-v4-flash",
       "color": "#C0CAF5",
-      "description": "Low-latency agent for quick tasks",
+      "description": "[$   | !!!] Low-latency agent for quick tasks",
       "permission": {
         "skill": { "*": "ask" },
       },
@@ -106,6 +109,15 @@
     "free": {
       "model": "opencode/big-pickle",
       "color": "#BBAA33",
+      "description": "[Free| ???] Free tier model for unlimited experimentation",
+    },
+  },
+
+  // Commands
+  "command": {
+    "audit-agents": {
+      "template": "Run the agent-model-audit skill to review all connected providers, analyze model cost and speed, check for duplicate model assignments, create an audit report in docs/agent-audits/YYYY-MM-DD.md, and update agent configurations with optimized model assignments and [cost | speed] indicators in descriptions.",
+      "description": "Audit and optimize agent model assignments",
     },
   },
 

@@ -6,4 +6,5 @@ node_modules/
 .server_credentials
 
 docs/superpowers/
+docs/agent-audits/
 opencode-notifier-state.json
