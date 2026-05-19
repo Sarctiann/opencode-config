@@ -119,6 +119,10 @@
       "template": "Run the agent-model-audit skill to review all connected providers, analyze model cost and speed, check for duplicate model assignments, create an audit report in docs/agent-audits/YYYY-MM-DD.md, and update agent configurations with optimized model assignments and [cost | speed] indicators in descriptions.",
       "description": "Audit and optimize agent model assignments",
     },
+    "sync-agents": {
+      "template": "Run the agent-sync skill to synchronize agent definition changes across opencode.jsonc, agents/*.md, agents/z-*.md, opencode_nvim_mcps.jsonc, and the neovim config directory at ~/.config/nvim/lua/utils/opencode-neovim/. Check for consistency in model assignments, agent name references, and skill permissions.",
+      "description": "Sync agent changes across all config files and neovim directory",
+    },
   },
 
   // MCP servers configuration
