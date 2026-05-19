@@ -58,6 +58,11 @@
       "description": "[$   | !!!] General-purpose assistant for everyday tasks",
     },
     // Custom agents with specific models and colors
+    "x-free": {
+      "model": "opencode/big-pickle",
+      "color": "#BBAA33",
+      "description": "[Free | ???] Free tier model for unlimited experimentation",
+    },
     "z-logic": {
       "model": "opencode-go/deepseek-v4-pro",
       "color": "#7AA2F7",
@@ -105,11 +110,6 @@
       "permission": {
         "skill": { "*": "ask" },
       },
-    },
-    "free": {
-      "model": "opencode/big-pickle",
-      "color": "#BBAA33",
-      "description": "[Free| ???] Free tier model for unlimited experimentation",
     },
   },
 
