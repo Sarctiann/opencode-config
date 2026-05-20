@@ -45,9 +45,9 @@
       "description": "[$$  | !! ] Default agent for general coding and building tasks",
     },
     "plan": {
-      "model": "opencode-go/glm-5.1",
+      "model": "opencode/claude-sonnet-4-6",
       "color": "accent",
-      "description": "[$$$ | !  ] Strategic planner for architecture and implementation plans",
+      "description": "[$$$ | !! ] Strategic planner for architecture and implementation plans",
     },
     "explore": {
       "model": "opencode-go/minimax-m2.5",
@@ -58,10 +58,10 @@
       "description": "[$   | !!!] General-purpose assistant for everyday tasks",
     },
     // Custom agents with specific models and colors
-    "x-free": {
+    "x--free": {
       "model": "opencode/big-pickle",
       "color": "#BBAA33",
-      "description": "[Free | ???] Free tier model for unlimited experimentation",
+      "description": "[Free| ?  ] Free tier model for unlimited experimentation",
     },
     "z-logic": {
       "model": "opencode-go/deepseek-v4-pro",
@@ -96,17 +96,17 @@
       },
     },
     "z-pilot": {
-      "model": "opencode-go/glm-5",
+      "model": "opencode-go/kimi-k2.5",
       "color": "#7DCFFF",
-      "description": "[$$$ | !  ] Tool and execution specialist for tests/builds/scripts",
+      "description": "[$$  | !! ] Tool and execution specialist for tests/builds/scripts",
       "permission": {
         "skill": { "*": "ask" },
       },
     },
     "z-spark": {
-      "model": "opencode-go/deepseek-v4-flash",
+      "model": "opencode/deepseek-v4-flash-free",
       "color": "#C0CAF5",
-      "description": "[$   | !!!] Low-latency agent for quick tasks",
+      "description": "[Free| ?  ] Low-latency agent for quick tasks",
       "permission": {
         "skill": { "*": "ask" },
       },
@@ -116,11 +116,11 @@
   // Commands
   "command": {
     "audit-agents": {
-      "template": "Run the agent-model-audit skill to review all connected providers, analyze model cost and speed, check for duplicate model assignments, create an audit report in docs/agent-audits/YYYY-MM-DD.md, and update agent configurations with optimized model assignments and [cost | speed] indicators in descriptions.",
-      "description": "Audit and optimize agent model assignments",
+      "template": "Run the agent-model-audit skill to audit and optimize agent model assignments. Check if the user provided a priority mode argument: 'skill'/'ability'/'habilidad' (default) = role fit first; 'price'/'cost'/'precio'/'barato' = cost first; 'speed'/'fast'/'velocidad'/'rapido' = speed first. Use that mode throughout the optimization step. If no argument was given, default to 'skill' mode.",
+      "description": "Audit and optimize agent model assignments. Optional argument: skill (default), price, or speed",
     },
     "sync-agents": {
-      "template": "Run the agent-sync skill to synchronize agent definition changes across opencode.jsonc, agents/*.md, agents/z-*.md, opencode_nvim_mcps.jsonc, and the neovim config directory at ~/.config/nvim/lua/utils/opencode-neovim/. Check for consistency in model assignments, agent name references, and skill permissions.",
+      "template": "Run the agent-sync-neovim skill to synchronize agent definition changes across opencode.jsonc, agents/*.md, opencode_nvim_mcps.jsonc, and the neovim config directory at ~/.config/nvim/lua/utils/opencode-neovim/. Check for consistency in model assignments, agent name references, and skill permissions.",
       "description": "Sync agent changes across all config files and neovim directory",
     },
   },
