@@ -45,7 +45,7 @@
     "lightPurple0": "#9854f1",
     "darkMaroon": "#37222c",
     "darkWine": "#2d1f26",
-    "inherit": "none"
+    "transparent": "none"
   },
   "theme": {
     "primary": {

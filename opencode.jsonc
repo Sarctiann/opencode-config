@@ -39,16 +39,6 @@
   // Agent-specific model configuration
   "agent": {
     // Built-in agents with specific models and colors
-    "build": {
-      "model": "opencode-go/qwen3.6-plus",
-      "color": "secondary",
-      "description": "[$$  | !! ] Default agent for general coding and building tasks",
-    },
-    "plan": {
-      "model": "opencode/claude-sonnet-4-6",
-      "color": "accent",
-      "description": "[$$$ | !! ] Strategic planner for architecture and implementation plans",
-    },
     "explore": {
       "model": "opencode-go/minimax-m2.5",
       "description": "[$   | !!!] Fast codebase exploration and information gathering",
@@ -57,52 +47,55 @@
       "model": "opencode-go/qwen3.5-plus",
       "description": "[$   | !!!] General-purpose assistant for everyday tasks",
     },
+    "build": {
+      "model": "opencode-go/qwen3.6-plus",
+      "color": "#c099ff",
+      "description": "[$$  | !! ] Default agent for general coding and building tasks",
+    },
+    "plan": {
+      "model": "opencode/claude-sonnet-4-6",
+      "color": "#ff966c",
+      "description": "[$$$ | !! ] Strategic planner for architecture and implementation plans",
+    },
     // Custom agents with specific models and colors
     "x--free": {
       "model": "opencode/big-pickle",
-      "color": "#BBAA33",
+      "color": "#ffc777",
       "description": "[Free| ?  ] Free tier model for unlimited experimentation",
+      "mode": "primary",
     },
     "x-learn": {
       "model": "opencode/gpt-5.4-mini",
-      "color": "#E5C07B",
+      "color": "#4fd6be",
       "description": "[$   | !! ] Learning companion — doesn't code, teaches concepts with clear explanations and examples",
     },
-    "z-logic": {
-      "model": "opencode-go/deepseek-v4-pro",
-      "color": "#7AA2F7",
-      "description": "[$$  | !! ] Reasoning architect for decomposition and design decisions",
+    "z-forge": {
+      "model": "opencode-go/mimo-v2.5-pro",
+      "color": "#7086b5",
+      "description": "[$$$ | !  ] High-precision implementation specialist",
       "permission": {
         "skill": { "*": "ask" },
       },
     },
-    "z-forge": {
-      "model": "opencode-go/mimo-v2.5-pro",
-      "color": "#9ECE6A",
-      "description": "[$$$ | !  ] High-precision implementation specialist",
+    "z-logic": {
+      "model": "opencode-go/deepseek-v4-pro",
+      "color": "#ff757f",
+      "description": "[$$  | !! ] Reasoning architect for decomposition and design decisions",
       "permission": {
         "skill": { "*": "ask" },
       },
     },
     "z-nexus": {
       "model": "opencode-go/kimi-k2.6",
-      "color": "#73DACA",
+      "color": "#86e1fc",
       "description": "[$$$ | !  ] Large-context analyzer for multi-file understanding",
-      "permission": {
-        "skill": { "*": "ask" },
-      },
-    },
-    "z-ultra": {
-      "model": "opencode-go/minimax-m2.7",
-      "color": "#F7768E",
-      "description": "[$$  | !!!] Heavy refactor and structural transformation specialist",
       "permission": {
         "skill": { "*": "ask" },
       },
     },
     "z-pilot": {
       "model": "opencode-go/kimi-k2.5",
-      "color": "#7DCFFF",
+      "color": "#82aaff",
       "description": "[$$  | !! ] Tool and execution specialist for tests/builds/scripts",
       "permission": {
         "skill": { "*": "ask" },
@@ -110,8 +103,16 @@
     },
     "z-spark": {
       "model": "opencode/deepseek-v4-flash-free",
-      "color": "#C0CAF5",
+      "color": "#c8d3f5",
       "description": "[Free| ?  ] Low-latency agent for quick tasks",
+      "permission": {
+        "skill": { "*": "ask" },
+      },
+    },
+    "z-ultra": {
+      "model": "opencode-go/minimax-m2.7",
+      "color": "#2e7de9",
+      "description": "[$$  | !!!] Heavy refactor and structural transformation specialist",
       "permission": {
         "skill": { "*": "ask" },
       },
