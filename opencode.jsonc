@@ -64,7 +64,7 @@
       "description": "[Free| ?  ] Free tier model for unlimited experimentation",
       "mode": "primary",
     },
-    "x-learn": {
+    "x-teach": {
       "model": "opencode/gpt-5.4-mini",
       "color": "#4fd6be",
       "description": "[$   | !! ] Learning companion — doesn't code, teaches concepts with clear explanations and examples",
