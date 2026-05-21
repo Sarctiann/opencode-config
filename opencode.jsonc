@@ -49,12 +49,12 @@
     },
     "build": {
       "model": "opencode-go/qwen3.6-plus",
-      "color": "#c099ff",
+      "color": "secondary",
       "description": "[$$  | !! ] Default agent for general coding and building tasks",
     },
     "plan": {
       "model": "opencode/claude-sonnet-4-6",
-      "color": "#ff966c",
+      "color": "accent",
       "description": "[$$$ | !! ] Strategic planner for architecture and implementation plans",
     },
     // Custom agents with specific models and colors

@@ -65,15 +65,15 @@
       "light": "lightRed0"
     },
     "warning": {
-      "dark": "darkOrange0",
+      "dark": "darkYellow0",
       "light": "lightOrange0"
     },
     "success": {
-      "dark": "darkGreen0",
+      "dark": "lightLime",
       "light": "lightGreen0"
     },
     "info": {
-      "dark": "darkBlue1",
+      "dark": "darkCyan0",
       "light": "lightBlue1"
     },
     "text": {
