@@ -63,6 +63,11 @@
       "color": "#BBAA33",
       "description": "[Free| ?  ] Free tier model for unlimited experimentation",
     },
+    "x-learn": {
+      "model": "opencode/gpt-5.4-mini",
+      "color": "#E5C07B",
+      "description": "[$   | !! ] Learning companion — doesn't code, teaches concepts with clear explanations and examples",
+    },
     "z-logic": {
       "model": "opencode-go/deepseek-v4-pro",
       "color": "#7AA2F7",
