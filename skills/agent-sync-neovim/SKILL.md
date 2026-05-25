@@ -28,12 +28,12 @@ The agent names are **identical** in all locations. There are no separate "main"
 
 ## Configuration Files
 
-| File                                        | Purpose                                            |
-| ------------------------------------------- | -------------------------------------------------- |
-| `opencode.jsonc`                            | Agent model assignments, descriptions, colors      |
-| `agents/<name>.md`                          | Agent prompt definitions                           |
-| `opencode-neovim/opencode_nvim_mcps.jsonc`  | MCP server config + agent skill permissions        |
-| `~/.config/nvim/lua/utils/opencode-neovim/` | Deployed neovim config copy                        |
+| File                                        | Purpose                                       |
+| ------------------------------------------- | --------------------------------------------- |
+| `opencode.jsonc`                            | Agent model assignments, descriptions, colors |
+| `agents/<name>.md`                          | Agent prompt definitions                      |
+| `opencode-neovim/opencode_nvim_mcps.jsonc`  | MCP server config + agent skill permissions   |
+| `~/.config/nvim/lua/utils/opencode-neovim/` | Deployed neovim config copy                   |
 
 ## Workflow
 
@@ -50,25 +50,30 @@ Determine which agents were modified. Check:
 Before syncing, verify that all agents are properly defined:
 
 **Check 1: opencode.jsonc → agents/ directory**
+
 - For every agent in `opencode.jsonc` agent block, verify `agents/<name>.md` exists
 - If missing, create it with appropriate frontmatter and placeholder content
 - Report any missing files
 
 **Check 2: agents/ directory → opencode.jsonc**
+
 - For every `agents/<name>.md` file, verify the agent exists in `opencode.jsonc`
 - If an agent file exists but is not in config, it's orphaned — report it
 - Do not delete orphaned files automatically; ask the user
 
 **Check 3: Description consistency**
+
 - Compare `agent.<name>.description` in `opencode.jsonc` with frontmatter `description:` in `agents/<name>.md`
 - They should match exactly (including `[cost | speed]` prefix)
 - If they differ, sync from `opencode.jsonc` to `agents/<name>.md`
 
 **Check 4: Mode validation**
+
 - Verify `mode:` in `agents/<name>.md` frontmatter is one of: `primary`, `subagent`, `all`
 - Invalid modes will cause opencode to fail
 
 **Check 5: Model uniqueness**
+
 - Extract all `model` values from `opencode.jsonc` agent block
 - Verify no two agents share the same model
 - Report any duplicates
@@ -78,14 +83,17 @@ Before syncing, verify that all agents are properly defined:
 For each changed agent:
 
 **If opencode.jsonc model/description changed:**
+
 - Update the corresponding `agents/<name>.md` frontmatter if needed
 - Update `opencode_nvim_mcps.jsonc` if permissions changed
 
 **If agent prompt (`agents/<name>.md`) changed:**
+
 - The prompt change only affects the agent definition file
 - No other files need updating unless frontmatter changed
 
 **Agent names are identical everywhere:**
+
 ```
 All agents from opencode.jsonc: build, plan, explore, general, x--free, x-learn, z-logic, z-forge, z-nexus, z-ultra, z-pilot, z-spark
 ```

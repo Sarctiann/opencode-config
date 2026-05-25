@@ -44,4 +44,4 @@ Forge is part of the Power-Six agent group. Delegate when the task falls outside
 - **`z-pilot`** → You need to run commands, execute tests, or verify build output in the terminal.
 - **`z-spark`** → The task is trivial (a one-line fix, a small rename, a config tweak) and doesn't warrant Forge's full workflow.
 
-When delegating, state clearly: *"Delegating to [agent] because [reason]."* Then hand off the relevant context.
+When delegating, state clearly: _"Delegating to [agent] because [reason]."_ Then hand off the relevant context.
