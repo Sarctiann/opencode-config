@@ -32,11 +32,13 @@ There are two zones:
 
 | Zone | Paths | Access |
 | ---- | ----- | ------ |
-| Neovim integration source | `~/.config/opencode/opencode-neovim/` | read/write |
-| Neovim integration mirror | `~/.config/nvim/lua/utils/opencode-neovim/` | read/write |
+| Neovim integration source (source of truth) | `~/.config/opencode/opencode-neovim/` | read/write — **all changes go here first** |
+| Neovim integration mirror | `~/.config/nvim/lua/utils/opencode-neovim/` | **read-only during edits**, synced only after commit |
 | External opencode config | `~/.config/opencode/opencode.jsonc`, `~/.config/opencode/agents/*.md` | read-only |
 
 The only bidirectional sync is between the source and mirror zones. External opencode config can be inspected to understand desired agent names or permissions, but it must never be updated by this skill.
+
+**Key principle:** The mirror is a deployment target, not an edit location. All modifications happen in the source, are committed, and only then propagated to the mirror.
 
 ## Files Eligible for Sync
 
@@ -63,19 +65,32 @@ Before any write operation, verify the target path starts with one of the allowe
 
 If the target path is outside both prefixes, do not write it. Report the blocked path.
 
-### 2. Identify Neovim Integration Changes
+### 2. All Changes Go to Source First
 
-Determine which files changed inside either allowed directory:
+**Always make changes in `opencode-neovim/` first.** This is the source of truth.
+
+- Edit files only inside `~/.config/opencode/opencode-neovim/`
+- Do NOT write directly to `~/.config/nvim/lua/utils/opencode-neovim/` unless the user explicitly requests it
+- The mirror is read-only during normal edit workflows
+
+### 3. Identify Neovim Integration Changes
+
+After changes are made to `opencode-neovim/`, determine what needs to be synced:
 
 - Compare `opencode-neovim/` with `~/.config/nvim/lua/utils/opencode-neovim/`
 - Check timestamps or diffs for files inside those directories only
 - If the user mentions `opencode.jsonc` or `agents/*.md`, treat them as read-only references, not sync targets
 
-### 3. Apply Directional Sync
+### 4. Commit Phase (User-Triggered)
 
-Sync only between the two allowed directories:
+When the user asks to commit changes:
 
-**Repo source → Neovim mirror:**
+1. Create a git commit for changes in `opencode-neovim/`
+2. Only **after** the commit is created, proceed to sync the mirror
+
+### 5. Mirror Sync (Post-Commit Only)
+
+Sync from repo source to Neovim mirror **only after a commit has been made**:
 
 ```bash
 rsync -av --exclude='node_modules' --exclude='.git' \
@@ -83,7 +98,9 @@ rsync -av --exclude='node_modules' --exclude='.git' \
   ~/.config/nvim/lua/utils/opencode-neovim/
 ```
 
-**Neovim mirror → repo source:**
+Do not add extra rsync sources or destinations.
+
+**Reverse sync** (mirror → source) is only performed when the user explicitly requests it:
 
 ```bash
 rsync -av --exclude='node_modules' --exclude='.git' \
@@ -91,47 +108,51 @@ rsync -av --exclude='node_modules' --exclude='.git' \
   ~/.config/opencode/opencode-neovim/
 ```
 
-Do not add extra rsync sources or destinations.
-
-### 4. Update Neovim MCP Permissions When Needed
+### 6. Update Neovim MCP Permissions When Needed
 
 If agent-related Neovim permissions must change, edit only:
 
 - `opencode-neovim/opencode_nvim_mcps.jsonc`
-- its mirror file at `~/.config/nvim/lua/utils/opencode-neovim/opencode_nvim_mcps.jsonc`
+- its mirror file at `~/.config/nvim/lua/utils/opencode-neovim/opencode_nvim_mcps.jsonc` (only during post-commit sync)
 
 You may read `opencode.jsonc` to identify current agent names, but do not modify `opencode.jsonc` or `agents/*.md`.
 
-### 5. Verify Consistency
+### 7. Verify Consistency
 
 Run these checks:
 
 - Every modified path is inside one of the two allowed directories
-- `opencode-neovim/` contents match `~/.config/nvim/lua/utils/opencode-neovim/`
+- After sync: `opencode-neovim/` contents match `~/.config/nvim/lua/utils/opencode-neovim/`
 - `opencode_nvim_mcps.jsonc` remains valid JSONC-compatible opencode config
 - No `opencode.jsonc` or `agents/*.md` file was created, modified, deleted, copied, or synchronized
+- Mirror was not modified before commit (unless user explicitly requested it)
 
-### 6. Report Changes
+### 8. Report Changes
 
 Summarize only files inside the allowed directories:
 
 ```markdown
 ## Agent Sync Report
 
-### Neovim Integration Files Updated
+### Neovim Integration Files Updated (Source)
 
 - `opencode-neovim/opencode_nvim_mcps.jsonc`: Skill permissions updated
-- `opencode-neovim/skills/...`: Skill mirror synced
+- `opencode-neovim/skills/...`: Skill definition updated
 
-### Mirror Synced
+### Commit Status
 
-- `~/.config/nvim/lua/utils/opencode-neovim/`
+- Changes committed: ✅ (or pending if not yet committed)
+
+### Mirror Sync Status
+
+- `~/.config/nvim/lua/utils/opencode-neovim/`: Synced (or pending until commit)
 
 ### Consistency Checks
 
 - Allowed path guard: ✅
-- Source/mirror match: ✅
+- Source/mirror match: ✅ (after sync)
 - No writes outside `opencode-neovim/`: ✅
+- Mirror not modified before commit: ✅
 ```
 
 ## Edge Cases
@@ -160,6 +181,8 @@ Summarize only files inside the allowed directories:
 | "Fixing `agents/*.md` would make consistency checks pass." | No. Report the mismatch; do not write outside the boundary. |
 | "The Neovim mirror needs a copy of an external file." | No. Only files physically inside `opencode-neovim/` are mirrored. |
 | "This is just a small metadata update." | No. Scope is path-based, not size-based. |
+| "I'll update the mirror directly to save time." | No. All changes go to source first, then commit, then sync. |
+| "The mirror is already read/write in the workflow." | No. Mirror is read-only during edits. Sync happens post-commit only. |
 
 ## Notes
 
