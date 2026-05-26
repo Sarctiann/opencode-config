@@ -26,6 +26,23 @@
 - If the user says "Do it without asking", skip all confirmation prompts and proceed autonomously based on
   your best understanding of their intent.
 
+## Neovim Integration Files — Bidirectional Sync
+
+This directory (`opencode-neovim/`) is the **source of truth** for Neovim integration files
+(skills, AGENTS.md, commands, opencode_nvim_mcps.jsonc). A mirror copy lives at
+`~/.config/nvim/lua/utils/opencode-neovim/` for Neovim's own use.
+
+**Whenever any file in this directory is modified, immediately copy it to
+`~/.config/nvim/lua/utils/opencode-neovim/`.** Likewise, if you modify files in the
+Neovim config directory, copy them back here.
+
+| Source of truth (this dir)              | Mirror                                    |
+| --------------------------------------- | ----------------------------------------- |
+| `AGENTS.md`                             | `~/.config/nvim/lua/utils/opencode-neovim/AGENTS.md` |
+| `skills/`                               | `~/.config/nvim/lua/utils/opencode-neovim/skills/`   |
+| `commands/`                             | `~/.config/nvim/lua/utils/opencode-neovim/commands/` |
+| `opencode_nvim_mcps.jsonc`              | `~/.config/nvim/lua/utils/opencode-neovim/opencode_nvim_mcps.jsonc` |
+
 ---
 
 # Neovim Integration Rules
@@ -50,6 +67,10 @@ Invoke the `using-neovim` skill to configure editor-integrated behavior.
 
 When `neovim_vim_*` tools are available (Neovim MCP active), follow these rules:
 
+- Before any MCP tool call that depends on buffer context (`neovim_vim_status`, `neovim_vim_buffer`, LSP commands, `neovim_vim_search`, `neovim_vim_search_replace`, `neovim_vim_grep`), run the Window Focus Step to switch focus away from the OpenCode terminal window to a file buffer:
+  ```vim
+  :lua for _, w in ipairs(vim.api.nvim_list_wins()) do local b = vim.api.nvim_win_get_buf(w) local bt = vim.bo[b].buftype local bn = vim.api.nvim_buf_get_name(b) if bt == "" and bn ~= "" then vim.api.nvim_set_current_win(w) break end end
+  ```
 - Use native `edit`/`write` tools to modify files on disk.
 - After any edit: run the formatter, then reload the buffer with `neovim_vim_command(":e")` or `:checktime`.
 - Open the edited file in Neovim with `neovim_vim_file_open` so the user sees the result.
