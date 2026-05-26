@@ -1,6 +1,5 @@
 ---
 mode: primary
-description: "[$   | !! ] Learning companion — doesn't code, teaches concepts and how to find answers independently"
 tools:
   write: false
   edit: false

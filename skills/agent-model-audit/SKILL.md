@@ -83,21 +83,28 @@ For every URL listed above that you navigate to:
 
 ### 3. Classify Models
 
-Assign each confirmed-available model a cost and speed rating using **only** the data gathered in step 2.
+Assign each confirmed-available model a quality, cost and speed rating using **only** the data gathered in step 2.
+
+**Quality scale** (based on popular consensus of model intelligence/capability):
+
+- `   -` — Basic (entry-level or free models)
+- `󰫣   ` — Good (capable models for most tasks)
+- `󰫣󰫣  ` — Very good (strong reasoning and coding ability)
+- `󰫣󰫣󰫣 ` — Excellent (top-tier models, best-in-class reasoning)
 
 **Cost scale:**
 
 - `Free` — Free tier (no quota cost)
-- `$   ` — Economic (highest requests per window, lowest cost per request)
-- `$$  ` — Normal (balanced cost/performance)
-- `$$$ ` — Expensive (lowest requests per window, highest cost per request)
+- `   ` — Economic (highest requests per window, lowest cost per request)
+- `  ` — Normal (balanced cost/performance)
+- ` ` — Expensive (lowest requests per window, highest cost per request)
 
 **Speed scale:**
 
-- `?  ` — Unknown (no benchmark data available)
-- `!  ` — Slow (extended thinking, deep reasoning, high latency)
-- `!! ` — Normal (balanced speed)
-- `!!!` — Fast (low latency, quick responses)
+- `-   ` — Unknown (no benchmark data available)
+- `󱐋   ` — Slow (extended thinking, deep reasoning, high latency)
+- `󱐋󱐋  ` — Normal (balanced speed)
+- `󱐋󱐋󱐋 ` — Fast (low latency, quick responses)
 
 ### 4. Identify Agent Roles
 
@@ -160,31 +167,32 @@ Write to `docs/agent-audits/YYYY-MM-DD.md`:
 
 ## Model Analysis
 
-| Model             | Cost | Speed | Requests/5h | Best For         |
-| ----------------- | ---- | ----- | ----------- | ---------------- |
-| deepseek-v4-flash | $    | !!!   | 31,650      | Quick tasks      |
-| minimax-m2.5      | $    | !!!   | 6,300       | Fast execution   |
-| qwen3.5-plus      | $    | !!!   | 10,200      | General tasks    |
-| qwen3.6-plus      | $$   | !!    | 3,300       | Balanced work    |
-| deepseek-v4-pro   | $$   | !!    | 3,450       | Reasoning        |
-| minimax-m2.7      | $$   | !!!   | 3,400       | Fast refactoring |
-| mimo-v2.5-pro     | $$$  | !     | 1,290       | Precision coding |
-| kimi-k2.6         | $$$  | !     | 1,150       | Large context    |
-| glm-5.1           | $$$  | !     | 880         | Deep planning    |
+| Model             | Quality | Cost | Speed | Requests/5h | Best For         |
+| ----------------- | ------- | ---- | ----- | ----------- | ---------------- |
+| deepseek-v4-flash |        |     | 󱐋󱐋󱐋   | 31,650      | Quick tasks      |
+| minimax-m2.5      |        |     | 󱐋󱐋󱐋   | 6,300       | Fast execution   |
+| qwen3.5-plus      |        |     | 󱐋󱐋󱐋   | 10,200      | General tasks    |
+| qwen3.6-plus      |       |    | 󱐋󱐋    | 3,300       | Balanced work    |
+| deepseek-v4-pro   |       |    | 󱐋󱐋    | 3,450       | Reasoning        |
+| minimax-m2.7      |       |    | 󱐋󱐋󱐋   | 3,400       | Fast refactoring |
+| mimo-v2.5-pro     |       |   | 󱐋     | 1,290       | Precision coding |
+| kimi-k2.6         |       |   | 󱐋     | 1,150       | Large context    |
+| glm-5.1           |       |   | 󱐋     | 880         | Deep planning    |
+| claude-sonnet-4-6 |      |   | 󱐋󱐋    | 1,000       | Top reasoning    |
 
 ## Proposed Assignments
 
-| Agent   | Model             | Cost | Speed | Role Fit  | Rationale           |
-| ------- | ----------------- | ---- | ----- | --------- | ------------------- |
-| build   | qwen3.6-plus      | $$   | !!    | Good      | Balanced for coding |
-| z-spark | deepseek-v4-flash | $    | !!!   | Excellent | Fast & cheap        |
-| ...     | ...               | ...  | ...   | ...       | ...                 |
+| Agent   | Model             | Quality | Cost | Speed | Role Fit  | Rationale           |
+| ------- | ----------------- | ------- | ---- | ----- | --------- | ------------------- |
+| build   | qwen3.6-plus      |       |    | 󱐋󱐋    | Good      | Balanced for coding |
+| z-spark | deepseek-v4-flash |        |     | 󱐋󱐋󱐋   | Excellent | Fast & cheap        |
+| ...     | ...               | ...     | ...  | ...   | ...       | ...                 |
 
 ## Changes from Previous Config
 
 - Assigned `z-forge` → `mimo-v2.5-pro` (precision coding, best role fit)
 - Assigned `explore` → `minimax-m2.5` (fast exploration, lowest cost)
-- Updated all agent descriptions with `[cost | speed]` indicators
+- Updated all agent descriptions with `[quality | cost | speed]` indicators
 
 ## Uniqueness Check
 
@@ -203,24 +211,25 @@ All model assignments must come **exclusively** from models confirmed in step 1.
 **`opencode.jsonc`:**
 
 - Set `agent.<name>.model` for every agent from the proposed assignments in step 6
-- Set `agent.<name>.description` with `[cost | speed]` prefix
+- Set `agent.<name>.description` with `[quality | cost | speed]` prefix
 
 **`agents/*.md`:**
 
-- Update frontmatter `description:` with `[cost | speed]` prefix
+- Update frontmatter `description:` with `[quality | cost | speed]` prefix
 - Preserve the original description text after the indicator
 
-**Format:** `[cost | speed] Description text`
+**Format:** `[quality | cost | speed] Description text`
 
-- Cost padded to 3 chars: `$   `, `$$  `, `$$$ `, `Free`
-- Speed padded to 3 chars: `?  `, `!  `, `!! `, `!!!`
-- Example: `[$$  | !! ] Reasoning architect for decomposition and design decisions`
+- Quality padded to 4 chars: `󰫣`, `  `, ` `, ``
+- Cost padded to 4 chars: `Free`, `   `, `  `, ` `
+- Speed padded to 4 chars: `?  `, `󱐋  `, `󱐋󱐋 `, `󱐋󱐋󱐋`
+- Example: `[ |   | 󱐋󱐋 ] Reasoning architect for decomposition and design decisions`
 - ⚠️ Do not add a space between "Free" and "|" the expected format is: `[Free| ?  ]`
 
 ### 8. Verify
 
 - No duplicate models across agents ✅
-- All agent descriptions have `[cost | speed]` indicators ✅
+- All agent descriptions have `[quality | cost | speed]` indicators ✅
 - All assigned models came from `opencode models` output ✅
 - **All model identifiers match `opencode models` output character-for-character** ✅
 - Audit report saved to `docs/agent-audits/YYYY-MM-DD.md` ✅

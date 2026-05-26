@@ -1,137 +1,81 @@
 ---
 name: agent-sync-neovim
-description: Use when agent definitions change and you need to synchronize across opencode.jsonc, agents/*.md, opencode_nvim_mcps.jsonc, and the neovim config directory at ~/.config/nvim/lua/utils/opencode-neovim/. Trigger keywords: "sync agents", "sync neovim agents", "update agent definitions", "propagate agent changes", "sync agent configs".
+description: Use when synchronizing Neovim integration files between opencode-neovim/ and ~/.config/nvim/lua/utils/opencode-neovim/. Trigger keywords: "sync agents", "sync neovim agents", "update agent definitions", "propagate agent changes", "sync agent configs".
 ---
 
 # Agent Sync Neovim
 
-Synchronize agent definition changes across all configuration files and the neovim integration directory. Ensures consistency between opencode.jsonc, agent prompt files, MCP permissions, and the deployed neovim config.
+Synchronize only the Neovim integration files that live inside `opencode-neovim/` with their deployed Neovim mirror.
+
+## Hard Scope Boundary
+
+This skill may write only inside these two directories:
+
+1. `~/.config/opencode/opencode-neovim/`
+2. `~/.config/nvim/lua/utils/opencode-neovim/`
+
+Files outside those directories are **read-only inputs**. Do not create, modify, delete, copy, or synchronize any file outside the two allowed directories.
+
+Forbidden write targets include, but are not limited to:
+
+- `~/.config/opencode/opencode.jsonc`
+- `~/.config/opencode/agents/*.md`
+- `~/.config/opencode/skills/*`
+- any path outside `opencode-neovim/` in this repository
+- any path outside `~/.config/nvim/lua/utils/opencode-neovim/` in the Neovim config
+
+If a requested sync requires changing a forbidden path, stop and report that the file is outside this skill's sync boundary.
 
 ## Architecture
 
-There is **one set of agents** that must be kept in sync across multiple locations:
+There are two zones:
 
-**All agents** (any agent defined in `opencode.jsonc`):
+| Zone | Paths | Access |
+| ---- | ----- | ------ |
+| Neovim integration source | `~/.config/opencode/opencode-neovim/` | read/write |
+| Neovim integration mirror | `~/.config/nvim/lua/utils/opencode-neovim/` | read/write |
+| External opencode config | `~/.config/opencode/opencode.jsonc`, `~/.config/opencode/agents/*.md` | read-only |
 
-These agents are configured in:
+The only bidirectional sync is between the source and mirror zones. External opencode config can be inspected to understand desired agent names or permissions, but it must never be updated by this skill.
 
-1. `opencode.jsonc` — model assignments, descriptions, colors, permissions
-2. `agents/<name>.md` — prompt definitions (e.g., `agents/z-logic.md`)
-3. `opencode-neovim/opencode_nvim_mcps.jsonc` — MCP server config + agent skill permissions
-4. `~/.config/nvim/lua/utils/opencode-neovim/` — deployed neovim config copy
+## Files Eligible for Sync
 
-The agent names are **identical** in all locations. There are no separate "main" and "neovim" agent families with different names.
+Only files under `opencode-neovim/` are eligible:
 
-**Primary agents** (mode: "primary") — not selectable as sub-agents, used for direct interaction.
-**Sub-agent agents** (mode: "subagent") — can be dispatched by other agents.
-**All mode agents** (mode: "all") — can be used both ways.
+- `opencode-neovim/opencode_nvim_mcps.jsonc`
+- `opencode-neovim/AGENTS.md`
+- `opencode-neovim/README.md`
+- `opencode-neovim/skills/**`
+- `opencode-neovim/commands/**`
+- `opencode-neovim/.gitignore`
+- other files physically inside `opencode-neovim/`
 
-## Configuration Files
-
-| File                                        | Purpose                                       |
-| ------------------------------------------- | --------------------------------------------- |
-| `opencode.jsonc`                            | Agent model assignments, descriptions, colors |
-| `agents/<name>.md`                          | Agent prompt definitions                      |
-| `opencode-neovim/opencode_nvim_mcps.jsonc`  | MCP server config + agent skill permissions   |
-| `~/.config/nvim/lua/utils/opencode-neovim/` | Deployed neovim config copy                   |
+The matching mirror path is always the same relative path under `~/.config/nvim/lua/utils/opencode-neovim/`.
 
 ## Workflow
 
-### 1. Identify Changed Agents
+### 1. Pre-Flight Path Guard
 
-Determine which agents were modified. Check:
+Before any write operation, verify the target path starts with one of the allowed prefixes:
 
-- `opencode.jsonc` agent block for model/description changes
-- `agents/*.md` files for prompt/description changes
-- Compare timestamps or ask the user which agents changed
+- `/Users/sebastianrodriguezcapurro/.config/opencode/opencode-neovim/`
+- `/Users/sebastianrodriguezcapurro/.config/nvim/lua/utils/opencode-neovim/`
 
-### 2. Verify Agent Integrity
+If the target path is outside both prefixes, do not write it. Report the blocked path.
 
-Before syncing, verify that all agents are properly defined:
+### 2. Identify Neovim Integration Changes
 
-**Check 1: opencode.jsonc → agents/ directory**
+Determine which files changed inside either allowed directory:
 
-- For every agent in `opencode.jsonc` agent block, verify `agents/<name>.md` exists
-- If missing, create it with appropriate frontmatter and placeholder content
-- Report any missing files
+- Compare `opencode-neovim/` with `~/.config/nvim/lua/utils/opencode-neovim/`
+- Check timestamps or diffs for files inside those directories only
+- If the user mentions `opencode.jsonc` or `agents/*.md`, treat them as read-only references, not sync targets
 
-**Check 2: agents/ directory → opencode.jsonc**
+### 3. Apply Directional Sync
 
-- For every `agents/<name>.md` file, verify the agent exists in `opencode.jsonc`
-- If an agent file exists but is not in config, it's orphaned — report it
-- Do not delete orphaned files automatically; ask the user
+Sync only between the two allowed directories:
 
-**Check 3: Description consistency**
-
-- Compare `agent.<name>.description` in `opencode.jsonc` with frontmatter `description:` in `agents/<name>.md`
-- They should match exactly (including `[cost | speed]` prefix)
-- If they differ, sync from `opencode.jsonc` to `agents/<name>.md`
-
-**Check 4: Mode validation**
-
-- Verify `mode:` in `agents/<name>.md` frontmatter is one of: `primary`, `subagent`, `all`
-- Invalid modes will cause opencode to fail
-
-**Check 5: Model uniqueness**
-
-- Extract all `model` values from `opencode.jsonc` agent block
-- Verify no two agents share the same model
-- Report any duplicates
-
-### 3. Sync Agent Definitions
-
-For each changed agent:
-
-**If opencode.jsonc model/description changed:**
-
-- Update the corresponding `agents/<name>.md` frontmatter if needed
-- Update `opencode_nvim_mcps.jsonc` if permissions changed
-
-**If agent prompt (`agents/<name>.md`) changed:**
-
-- The prompt change only affects the agent definition file
-- No other files need updating unless frontmatter changed
-
-**Agent names are identical everywhere:**
-
-```
-All agents from opencode.jsonc: build, plan, explore, general, x--free, x-learn, z-logic, z-forge, z-nexus, z-ultra, z-pilot, z-spark
-```
-
-### 3. Update opencode.jsonc
-
-If agent models or descriptions changed:
-
-- Update `agent.<name>.model` for each changed agent
-- Update `agent.<name>.description` with `[cost | speed]` prefix
-- Ensure no duplicate models across agents
-
-### 4. Update opencode_nvim_mcps.jsonc
-
-For each agent, ensure skill permissions are correct:
-
-```jsonc
-"agent": {
-  "z-logic": {
-    "permission": {
-      "skill": {
-        "using-neovim": "allow",
-        "using-quickfix": "allow",
-        "using-neovim-lsp": "allow",
-        "*": "ask",
-      },
-    },
-  },
-  // ... same pattern for z-forge, z-nexus, z-ultra, z-pilot, z-spark
-}
-```
-
-If new agents were added, add their permission blocks.
-If agents were removed, remove their permission blocks.
-
-### 5. Sync to Neovim Config Directory
-
-Copy the updated `opencode-neovim/` folder to the neovim config location:
+**Repo source → Neovim mirror:**
 
 ```bash
 rsync -av --exclude='node_modules' --exclude='.git' \
@@ -139,125 +83,86 @@ rsync -av --exclude='node_modules' --exclude='.git' \
   ~/.config/nvim/lua/utils/opencode-neovim/
 ```
 
-Files to sync:
+**Neovim mirror → repo source:**
 
-- `opencode_nvim_mcps.jsonc`
-- `AGENTS.md`
-- `README.md`
-- `skills/**/*.md`
-- `commands/**/*.md`
-- `.gitignore`
-- `package.json` (if changed)
+```bash
+rsync -av --exclude='node_modules' --exclude='.git' \
+  ~/.config/nvim/lua/utils/opencode-neovim/ \
+  ~/.config/opencode/opencode-neovim/
+```
 
-### 6. Verify Consistency
+Do not add extra rsync sources or destinations.
+
+### 4. Update Neovim MCP Permissions When Needed
+
+If agent-related Neovim permissions must change, edit only:
+
+- `opencode-neovim/opencode_nvim_mcps.jsonc`
+- its mirror file at `~/.config/nvim/lua/utils/opencode-neovim/opencode_nvim_mcps.jsonc`
+
+You may read `opencode.jsonc` to identify current agent names, but do not modify `opencode.jsonc` or `agents/*.md`.
+
+### 5. Verify Consistency
 
 Run these checks:
 
-**Agent file integrity:**
-
-- Every agent in `opencode.jsonc` has a corresponding `agents/<name>.md` file
-- Every `agents/<name>.md` file has a corresponding entry in `opencode.jsonc`
-- No orphaned agent files exist (or if they do, they are reported)
-
-**Description consistency:**
-
-- `opencode.jsonc` descriptions match `agents/<name>.md` frontmatter descriptions
-- All descriptions have `[cost | speed]` prefix format
-
-**Model uniqueness:**
-
-- No two agents share the same model
-
-**Name references:**
-
-- All agent references use the same names everywhere
-
-**Skill permissions:**
-
-- All agents have neovim skill permissions in `opencode_nvim_mcps.jsonc`
-- No agent is missing from the permissions block
-
-**File sync:**
-
+- Every modified path is inside one of the two allowed directories
 - `opencode-neovim/` contents match `~/.config/nvim/lua/utils/opencode-neovim/`
+- `opencode_nvim_mcps.jsonc` remains valid JSONC-compatible opencode config
+- No `opencode.jsonc` or `agents/*.md` file was created, modified, deleted, copied, or synchronized
 
-### 7. Report Changes
+### 6. Report Changes
 
-Summarize what was synchronized:
+Summarize only files inside the allowed directories:
 
 ```markdown
 ## Agent Sync Report
 
-### Agents Updated
+### Neovim Integration Files Updated
 
-- `z-logic`: Model changed to deepseek-v4-pro, description updated
-- `z-forge`: Prompt updated, permissions verified
+- `opencode-neovim/opencode_nvim_mcps.jsonc`: Skill permissions updated
+- `opencode-neovim/skills/...`: Skill mirror synced
 
-### Files Modified
+### Mirror Synced
 
-- `opencode.jsonc`: Agent models and descriptions
-- `agents/z-logic.md`: Prompt synced
-- `opencode-neovim/opencode_nvim_mcps.jsonc`: Skill permissions verified
-
-### Neovim Config Synced
-
-- Copied to ~/.config/nvim/lua/utils/opencode-neovim/
+- `~/.config/nvim/lua/utils/opencode-neovim/`
 
 ### Consistency Checks
 
-- Agent file integrity (jsonc ↔ agents/): ✅
-- Description consistency: ✅
-- Model uniqueness: ✅
-- Name references: ✅
-- Skill permissions: ✅
-- File sync: ✅
+- Allowed path guard: ✅
+- Source/mirror match: ✅
+- No writes outside `opencode-neovim/`: ✅
 ```
 
 ## Edge Cases
 
-**New agent added:**
+**Agent added or removed outside `opencode-neovim/`:**
 
-1. Verify `agents/<name>.md` exists with proper frontmatter (mode, description with `[cost | speed]` prefix)
-2. Verify agent is in `opencode.jsonc` agent block with model, description, color
-3. Add permissions to `opencode_nvim_mcps.jsonc`
-4. Sync to neovim directory
-5. If `mode` is `primary`, note that this agent is not selectable as sub-agent
+- Read `opencode.jsonc` if necessary to update Neovim permissions inside `opencode-neovim/opencode_nvim_mcps.jsonc`
+- Do not create, delete, or modify `agents/<name>.md`
+- Do not modify `opencode.jsonc`
 
-**Agent removed:**
+**Description, model, or prompt mismatch outside `opencode-neovim/`:**
 
-1. Delete `agents/<name>.md`
-2. Remove from `opencode.jsonc`
-3. Remove permissions from `opencode_nvim_mcps.jsonc`
-4. Update references in other agents' delegation sections
-5. Sync to neovim directory
+- Report the mismatch as outside this sync workflow
+- Do not reconcile it automatically
 
-**Model change only:**
+**User asks to sync all config files:**
 
-- Only update `opencode.jsonc` agent block
-- No prompt sync needed
-- Still verify uniqueness
+- Sync only files under `opencode-neovim/` and its mirror
+- Explicitly state that files outside `opencode-neovim/` are excluded
 
-**Description mismatch:**
+## Common Rationalizations to Reject
 
-- If `opencode.jsonc` description differs from `agents/<name>.md` frontmatter
-- Sync from `opencode.jsonc` to `agents/<name>.md` (source of truth)
-- Preserve any non-frontmatter content in the `.md` file
-
-**Missing agent file:**
-
-- If agent exists in `opencode.jsonc` but `agents/<name>.md` is missing
-- Create the file with proper frontmatter and a placeholder prompt
-- Alert the user that the file was created and needs proper content
-
-**Orphaned agent file:**
-
-- If `agents/<name>.md` exists but agent is not in `opencode.jsonc`
-- Report it to the user; do not delete automatically
-- Suggest removal if the agent is no longer needed
+| Rationalization | Required response |
+| ---------------- | ----------------- |
+| "`opencode.jsonc` is agent config, so it should be synced too." | No. It is outside `opencode-neovim/` and is read-only for this skill. |
+| "Fixing `agents/*.md` would make consistency checks pass." | No. Report the mismatch; do not write outside the boundary. |
+| "The Neovim mirror needs a copy of an external file." | No. Only files physically inside `opencode-neovim/` are mirrored. |
+| "This is just a small metadata update." | No. Scope is path-based, not size-based. |
 
 ## Notes
 
-- Agent names are identical in all configuration locations
-- Neovim directory sync should exclude `node_modules/`
-- Remind user to restart opencode after config changes
-- Remind user to restart neovim after neovim config sync
+- Neovim directory sync should exclude `node_modules/` and `.git/`
+- Remind the user to restart opencode after skill/config changes
+- Remind the user to restart Neovim after Neovim integration sync
