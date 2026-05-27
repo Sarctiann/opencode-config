@@ -41,17 +41,21 @@
     // Built-in agents with specific models and colors
     "explore": {
       "model": "opencode-go/minimax-m2.5",
+      "description": "[   -|   |󱐋󱐋󱐋 ] Fast codebase exploration at lowest cost",
     },
     "general": {
-      "model": "opencode-go/qwen3.5-plus",
+      "model": "opencode-go/qwen3.6-plus",
+      "description": "[󰫣󰫣  |  |󱐋󱐋  ] Balanced general-purpose assistant",
     },
     "build": {
-      "model": "opencode-go/qwen3.6-plus",
+      "model": "opencode-go/qwen3.7-max",
       "color": "secondary",
+      "description": "[󰫣󰫣  | |󱐋   ] Implementation specialist with precision coding",
     },
     "plan": {
-      "model": "opencode/claude-sonnet-4-6",
+      "model": "openai/gpt-5.5-pro",
       "color": "accent",
+      "description": "[󰫣󰫣󰫣 | |󱐋   ] Deep reasoning architect for multi-step planning and design",
     },
     // Custom agents with specific models and colors
     "x--free": {
@@ -75,7 +79,7 @@
     },
     "z-logic": {
       "model": "opencode-go/glm-5.1",
-      "color": "#ff757f",
+      "color": "#2e7de9",
       "description": "[󰫣󰫣  | |󱐋   ] Reasoning architect for decomposition and design decisions",
       "permission": {
         "skill": { "*": "ask" },
@@ -90,9 +94,9 @@
       },
     },
     "z-pilot": {
-      "model": "opencode/gpt-5.4",
+      "model": "opencode-go/minimax-m2.7",
       "color": "#82aaff",
-      "description": "[󰫣󰫣  |  |󱐋󱐋  ] Tool and execution specialist for tests/builds/scripts",
+      "description": "[󰫣󰫣  |  |󱐋󱐋󱐋 ] Tool and execution specialist for tests/builds/scripts",
       "permission": {
         "skill": { "*": "ask" },
       },
@@ -106,9 +110,9 @@
       },
     },
     "z-ultra": {
-      "model": "opencode/gpt-5.5",
-      "color": "#2e7de9",
-      "description": "[󰫣󰫣󰫣 | |󱐋󱐋  ] Heavy refactor and structural transformation specialist",
+      "model": "opencode/claude-opus-4-7",
+      "color": "#ff757f",
+      "description": "[󰫣󰫣󰫣 | |󱐋   ] Heavy refactor and structural transformation specialist",
       "permission": {
         "skill": { "*": "ask" },
       },

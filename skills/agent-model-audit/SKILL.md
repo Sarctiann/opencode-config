@@ -203,7 +203,7 @@ All agents use unique models: ✅
 
 All model assignments must come **exclusively** from models confirmed in step 1.
 
-> **⚠️ CRITICAL:** Before writing any model identifier to `opencode.jsonc` or `agents/*.md`,
+> **⚠️ CRITICAL:** Before writing any model identifier to `opencode.jsonc`,
 > verify it character-for-character against the `opencode models` output from step 1.
 > Common mistakes: replacing hyphens with dots (`claude-sonnet-4-6` → `claude-sonnet-4.6`)
 > or vice versa. Always copy-paste, never type from memory.
@@ -215,8 +215,10 @@ All model assignments must come **exclusively** from models confirmed in step 1.
 
 **`agents/*.md`:**
 
-- Update frontmatter `description:` with `[quality | cost | speed]` prefix
-- Preserve the original description text after the indicator
+- Do NOT add or modify `description` in agent `.md` frontmatter.
+- The `description` field with `[quality | cost | speed]` indicators must ONLY exist in `opencode.jsonc`.
+- Agent `.md` files contain the agent's behavioral instructions (mode, tools, system prompt).
+- Duplicating descriptions in both places creates drift and confusion.
 
 **Format:** `[quality | cost | speed] Description text`
 
@@ -238,5 +240,6 @@ All model assignments must come **exclusively** from models confirmed in step 1.
 ## Notes
 
 - `docs/agent-audits/` should be gitignored (working documents, not committed)
-- Config changes (`opencode.jsonc`, `agents/`) should be committed
+- Config changes (`opencode.jsonc`) should be committed
+- Agent `.md` files should only be committed if their behavioral content (mode, tools, system prompt) was modified — not for description changes
 - Remind user to restart opencode after config changes
