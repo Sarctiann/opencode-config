@@ -3,5 +3,6 @@
   "theme": "custom-tokyonight",
   "keybinds": {
     "which_key_toggle": "<leader>k"
-  }
+  },
+  "plugin": ["@slkiser/opencode-quota"]
 }

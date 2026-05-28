@@ -3,7 +3,7 @@ package-lock.json
 bun.lock
 node_modules/
 
-.server_credentials
+.credentials
 
 docs/superpowers/
 docs/agent-audits/
