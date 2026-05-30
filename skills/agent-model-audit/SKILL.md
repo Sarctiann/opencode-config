@@ -51,7 +51,7 @@ From the output:
 >
 > **Never guess or normalize model names.** Always copy-paste the exact identifier
 > from the `opencode models` output. This applies to all steps that reference
-> model names (steps 2, 3, 5, 6, 7, and 8).
+> model names (steps 2, 3, 5, 6, 7, 8, and 9).
 
 Also read `opencode.jsonc` to collect **agent names and their roles** (from descriptions and `agents/*.md` files). Ignore current model assignments — those will be replaced.
 
@@ -81,30 +81,29 @@ For every URL listed above that you navigate to:
 1. If the page loads successfully → use it as-is.
 2. If the page returns 404 or redirects to an unrelated page → search for the correct URL, then **update this SKILL.md** with the correct URL before continuing. This ensures future executions use the correct URL.
 
-### 3. Classify Models
+### 3. Collect Concrete Model Data
 
-Assign each confirmed-available model a quality, cost and speed rating using **only** the data gathered in step 2.
+For each confirmed-available model, extract the following **numeric** values from your step 2 research:
 
-**Quality scale** (based on popular consensus of model intelligence/capability):
+- **Intelligence Score** (0–100): A numeric capability score based on reasoning and coding benchmarks (MMLU-Pro, GPQA, HumanEval, SWE-bench, etc.) and/or community consensus. The goal is a single comparable number per model. If multiple benchmarks are available, use a weighted average.
+- **Cost per Million Tokens** (USD): The provider's listed cost per 1M input tokens. Use the input token price as the standard comparator.
+- **Speed** (tokens/second): Measured output tokens per second from provider docs or community benchmarks. If only latency is available, convert to a comparable throughput estimate.
 
-- `   -` — Basic (entry-level or free models)
-- `󰫣   ` — Good (capable models for most tasks)
-- `󰫣󰫣  ` — Very good (strong reasoning and coding ability)
-- `󰫣󰫣󰫣 ` — Excellent (top-tier models, best-in-class reasoning)
+> **Important:** These must be actual numeric values from research, not subjective categories. If exact numbers aren't available, estimate conservatively and note the source.
 
-**Cost scale:**
+Record the data in a structured JSON file for later use with the scale calculator script. Example:
 
-- `Free` — Free tier (no quota cost)
-- `   ` — Economic (highest requests per window, lowest cost per request)
-- `  ` — Normal (balanced cost/performance)
-- ` ` — Expensive (lowest requests per window, highest cost per request)
-
-**Speed scale:**
-
-- `-   ` — Unknown (no benchmark data available)
-- `󱐋   ` — Slow (extended thinking, deep reasoning, high latency)
-- `󱐋󱐋  ` — Normal (balanced speed)
-- `󱐋󱐋󱐋 ` — Fast (low latency, quick responses)
+```json
+{
+  "models": {
+    "provider/model-name": {
+      "intelligence": 82,
+      "cost": 3.50,
+      "speed": 120
+    }
+  }
+}
+```
 
 ### 4. Identify Agent Roles
 
@@ -148,7 +147,47 @@ Assign each agent a model from the step-1 list. Apply the **Priority Mode** from
 - **No assignment left blank** — every agent must have a model
 - **Exact identifier match** — model names must be copied verbatim from step 1 output, including all hyphens, dots, and version numbers. Never modify, normalize, or guess identifiers.
 
-### 6. Create Audit Report
+### 6. Calculate Scale-Based Indicators
+
+After assigning models to all agents (step 5), compute the quality, cost, and speed indicators **relative to the selected set of models only**.
+
+Run the scale calculator script with your collected data and assignments:
+
+```bash
+python skills/agent-model-audit/scripts/scale-calculator.py \
+  --data path/to/model-data.json \
+  --assignments path/to/assignments.json \
+  --format json \
+  --output path/to/scale-results.json
+```
+
+The JSON output contains `value`, `tier`, `icon`, and `label` for each dimension of each selected model.
+
+**Algorithm:**
+
+For each dimension (intelligence, cost, speed):
+
+1. Collect the numeric values for all assigned models
+2. Sort ascending (lowest to highest)
+3. Find the minimum and maximum values
+4. Calculate the range: `range = max - min`
+5. Divide the range into 3 equal segments:
+   - Segment 1: `[min, min + range/3)`
+   - Segment 2: `[min + range/3, min + 2*range/3)`
+   - Segment 3: `[min + 2*range/3, max]`
+6. Assign icons based on which segment each model falls into:
+
+| Dimension      | Segment 1                | Segment 2               | Segment 3                 |
+| -------------- | ------------------------ | ----------------------- | ------------------------- |
+| Intelligence   | `󰫣   ` (1 — Good)       | `󰫣󰫣  ` (2 — Very Good) | `󰫣󰫣󰫣 ` (3 — Excellent) |
+| Cost           | `   ` (1 — Economic)    | `  ` (2 — Normal)     | ` ` (3 — Expensive)  |
+| Speed          | `󱐋  ` (1 — Slow)        | `󱐋󱐋 ` (2 — Normal)     | `󱐋󱐋󱐋` (3 — Fast)       |
+
+> **Edge case:** If all models have the same value for a dimension (`range = 0`), assign the middle tier (2 icons) to all models.
+
+> **Note:** For intelligence and speed, more icons = better. For cost, fewer icons = cheaper (better).
+
+### 7. Create Audit Report
 
 Write to `docs/agent-audits/YYYY-MM-DD.md`:
 
@@ -167,26 +206,38 @@ Write to `docs/agent-audits/YYYY-MM-DD.md`:
 
 ## Model Analysis
 
-| Model             | Quality | Cost | Speed | Requests/5h | Best For         |
-| ----------------- | ------- | ---- | ----- | ----------- | ---------------- |
-| deepseek-v4-flash |        |     | 󱐋󱐋󱐋   | 31,650      | Quick tasks      |
-| minimax-m2.5      |        |     | 󱐋󱐋󱐋   | 6,300       | Fast execution   |
-| qwen3.5-plus      |        |     | 󱐋󱐋󱐋   | 10,200      | General tasks    |
-| qwen3.6-plus      |       |    | 󱐋󱐋    | 3,300       | Balanced work    |
-| deepseek-v4-pro   |       |    | 󱐋󱐋    | 3,450       | Reasoning        |
-| minimax-m2.7      |       |    | 󱐋󱐋󱐋   | 3,400       | Fast refactoring |
-| mimo-v2.5-pro     |       |   | 󱐋     | 1,290       | Precision coding |
-| kimi-k2.6         |       |   | 󱐋     | 1,150       | Large context    |
-| glm-5.1           |       |   | 󱐋     | 880         | Deep planning    |
-| claude-sonnet-4-6 |      |   | 󱐋󱐋    | 1,000       | Top reasoning    |
+Numeric data collected in step 3:
+
+| Model             | Intelligence | Cost ($/1M tok) | Speed (t/s) |
+| ----------------- | ------------ | ---------------- | ----------- |
+| deepseek-v4-flash | 65           | 0.15             | 200         |
+| minimax-m2.5      | 60           | 0.20             | 180         |
+| qwen3.5-plus      | 72           | 0.35             | 150         |
+| qwen3.6-plus      | 78           | 1.50             | 100         |
+| deepseek-v4-pro   | 85           | 2.00             | 90          |
+| minimax-m2.7      | 80           | 1.80             | 170         |
+| mimo-v2.5-pro     | 88           | 8.00             | 45          |
+| kimi-k2.6         | 82           | 6.00             | 50          |
+| glm-5.1           | 90           | 10.00            | 40          |
+| claude-sonnet-4-6 | 95           | 15.00            | 80          |
+
+## Scale Calculation
+
+Range divided into 3 equal thirds per dimension (computed in step 6):
+
+| Dimension    | Min  | Max  | Range | 1st third   | 2nd third   | 3rd third   |
+| ------------ | ---- | ---- | ----- | ----------- | ----------- | ----------- |
+| Intelligence | 60   | 95   | 35    | 60–72       | 72–83       | 83–95       |
+| Cost         | 0.15 | 15.0 | 14.85 | 0.15–5.10   | 5.10–10.05  | 10.05–15.00 |
+| Speed        | 40   | 200  | 160   | 40–93       | 93–147      | 147–200     |
 
 ## Proposed Assignments
 
-| Agent   | Model             | Quality | Cost | Speed | Role Fit  | Rationale           |
-| ------- | ----------------- | ------- | ---- | ----- | --------- | ------------------- |
-| build   | qwen3.6-plus      |       |    | 󱐋󱐋    | Good      | Balanced for coding |
-| z-spark | deepseek-v4-flash |        |     | 󱐋󱐋󱐋   | Excellent | Fast & cheap        |
-| ...     | ...               | ...     | ...  | ...   | ...       | ...                 |
+| Agent   | Model             | Intelligence | Cost | Speed | Role Fit  | Rationale           |
+| ------- | ----------------- | ------------ | ---- | ----- | --------- | ------------------- |
+| build   | qwen3.6-plus      | 󰫣󰫣          |     | 󱐋󱐋    | Good      | Balanced for coding |
+| z-spark | deepseek-v4-flash | 󰫣           |     | 󱐋󱐋󱐋   | Excellent | Fast & cheap        |
+| ...     | ...               | ...          | ...  | ...   | ...       | ...                 |
 
 ## Changes from Previous Config
 
@@ -199,7 +250,7 @@ Write to `docs/agent-audits/YYYY-MM-DD.md`:
 All agents use unique models: ✅
 ```
 
-### 7. Update Configurations
+### 8. Update Configurations
 
 All model assignments must come **exclusively** from models confirmed in step 1.
 
@@ -210,7 +261,7 @@ All model assignments must come **exclusively** from models confirmed in step 1.
 
 **`opencode.jsonc`:**
 
-- Set `agent.<name>.model` for every agent from the proposed assignments in step 6
+- Set `agent.<name>.model` for every agent from the proposed assignments in step 7
 - Set `agent.<name>.description` with `[quality | cost | speed]` prefix
 
 **`agents/*.md`:**
@@ -222,16 +273,17 @@ All model assignments must come **exclusively** from models confirmed in step 1.
 
 **Format:** `[quality | cost | speed] Description text`
 
-- Quality padded to 4 chars: `󰫣`, `  `, ` `, ``
-- Cost padded to 4 chars: `Free`, `   `, `  `, ` `
-- Speed padded to 4 chars: `?  `, `󱐋  `, `󱐋󱐋 `, `󱐋󱐋󱐋`
-- Example: `[ |   | 󱐋󱐋 ] Reasoning architect for decomposition and design decisions`
-- ⚠️ Do not add a space between "Free" and "|" the expected format is: `[Free| ?  ]`
+- Quality padded to 4 chars: `󰫣   ` (Good), `󰫣󰫣  ` (Very Good), `󰫣󰫣󰫣 ` (Excellent)
+- Cost padded to 4 chars: `   ` (Economic), `  ` (Normal), ` ` (Expensive)
+- Speed padded to 4 chars: `󱐋  ` (Slow), `󱐋󱐋 ` (Normal), `󱐋󱐋󱐋` (Fast)
+- Example: `[󰫣󰫣 |   | 󱐋󱐋 ] Reasoning architect for decomposition and design decisions`
 
-### 8. Verify
+### 9. Verify
 
 - No duplicate models across agents ✅
 - All agent descriptions have `[quality | cost | speed]` indicators ✅
+- Scale calculation ran on selected models only ✅
+- Icons assigned by range thirds (1/3 → 1 icon, 2/3 → 2 icons, 3/3 → 3 icons) ✅
 - All assigned models came from `opencode models` output ✅
 - **All model identifiers match `opencode models` output character-for-character** ✅
 - Audit report saved to `docs/agent-audits/YYYY-MM-DD.md` ✅

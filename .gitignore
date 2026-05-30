@@ -2,6 +2,8 @@ package.json
 package-lock.json
 bun.lock
 node_modules/
+__pycache__/
+.DS_Store
 
 .credentials
 
