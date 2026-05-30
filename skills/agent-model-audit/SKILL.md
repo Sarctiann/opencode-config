@@ -165,25 +165,33 @@ The JSON output contains `value`, `tier`, `icon`, and `label` for each dimension
 
 **Algorithm:**
 
-For each dimension (intelligence, cost, speed):
+For each dimension:
 
 1. Collect the numeric values for all assigned models
-2. Sort ascending (lowest to highest)
-3. Find the minimum and maximum values
+2. Apply the dimension-specific rule for `---`
+3. Find the relevant minimum and maximum values
 4. Calculate the range: `range = max - min`
-5. Divide the range into 3 equal segments:
-   - Segment 1: `[min, min + range/3)`
-   - Segment 2: `[min + range/3, min + 2*range/3)`
-   - Segment 3: `[min + 2*range/3, max]`
+5. Divide the relevant range into equal segments
 6. Assign icons based on which segment each model falls into:
 
-| Dimension      | Segment 1                | Segment 2               | Segment 3                 |
-| -------------- | ------------------------ | ----------------------- | ------------------------- |
-| Intelligence   | `󰫣   ` (1 — Good)       | `󰫣󰫣  ` (2 — Very Good) | `󰫣󰫣󰫣 ` (3 — Excellent) |
-| Cost           | `   ` (1 — Economic)    | `  ` (2 — Normal)     | ` ` (3 — Expensive)  |
-| Speed          | `󱐋  ` (1 — Slow)        | `󱐋󱐋 ` (2 — Normal)     | `󱐋󱐋󱐋` (3 — Fast)       |
+### Dimension Rules
 
-> **Edge case:** If all models have the same value for a dimension (`range = 0`), assign the middle tier (2 icons) to all models.
+- **Intelligence:** `---` means `Basic`. Use all intelligence values and split the full range into 4 equal segments.
+- **Cost:** `---` means `Free`. Use `---` only when cost is exactly `0`. Split the positive-cost range into 3 equal segments for the remaining tiers.
+- **Speed:** `---` means `Unknown`. Use `---` only when the model has no speed value. Split the known-speed range into 3 equal segments for the remaining tiers.
+
+| Dimension      | Segment 1               | Segment 2                | Segment 3               | Segment 4                 |
+| -------------- | ----------------------- | ------------------------ | ----------------------- | ------------------------- |
+| Intelligence   | `--- ` (0 — Basic)      | `󰫣   ` (1 — Good)       | `󰫣󰫣  ` (2 — Very Good) | `󰫣󰫣󰫣 ` (3 — Excellent) |
+| Cost           | `--- ` (0 — Free)       | `   ` (1 — Economic)    | `  ` (2 — Normal)     | ` ` (3 — Expensive)  |
+| Speed          | `--- ` (0 — Unknown)    | `󱐋  ` (1 — Slow)        | `󱐋󱐋 ` (2 — Normal)     | `󱐋󱐋󱐋` (3 — Fast)       |
+
+> **Edge cases:**
+> - If intelligence has no spread (`range = 0`), assign the second segment (1 icon) to all models.
+> - If all selected costs are `0`, assign `---` to all cost values.
+> - If the positive cost range has no spread, assign the second non-zero segment (2 icons) to all positive-cost models.
+> - If no speed values are known, assign `---` to all speed values.
+> - If the known speed range has no spread, assign the second non-zero segment (2 icons) to all known-speed models.
 
 > **Note:** For intelligence and speed, more icons = better. For cost, fewer icons = cheaper (better).
 
@@ -223,13 +231,13 @@ Numeric data collected in step 3:
 
 ## Scale Calculation
 
-Range divided into 3 equal thirds per dimension (computed in step 6):
+Range divided per dimension (computed in step 6):
 
-| Dimension    | Min  | Max  | Range | 1st third   | 2nd third   | 3rd third   |
-| ------------ | ---- | ---- | ----- | ----------- | ----------- | ----------- |
-| Intelligence | 60   | 95   | 35    | 60–72       | 72–83       | 83–95       |
-| Cost         | 0.15 | 15.0 | 14.85 | 0.15–5.10   | 5.10–10.05  | 10.05–15.00 |
-| Speed        | 40   | 200  | 160   | 40–93       | 93–147      | 147–200     |
+| Dimension    | Min / Scope      | Max / Scope      | Range | Q1 (< )     | Q2 (< )     | Q3 (< )     | Q4 (>=)     |
+| ------------ | ---------------- | ---------------- | ----- | ----------- | ----------- | ----------- | ----------- |
+| Intelligence | 60               | 95               | 35    | 60–69       | 69–78       | 78–87       | 87–95       |
+| Cost         | 0.15 (positive)  | 15.0 (positive)  | 14.85 | 0.15–3.86   | 3.86–7.58   | 7.58–11.29  | 11.29–15.00 |
+| Speed        | 40 (known)       | 200 (known)      | 160   | 40–80       | 80–120      | 120–160     | 160–200     |
 
 ## Proposed Assignments
 
@@ -273,9 +281,9 @@ All model assignments must come **exclusively** from models confirmed in step 1.
 
 **Format:** `[quality | cost | speed] Description text`
 
-- Quality padded to 4 chars: `󰫣   ` (Good), `󰫣󰫣  ` (Very Good), `󰫣󰫣󰫣 ` (Excellent)
-- Cost padded to 4 chars: `   ` (Economic), `  ` (Normal), ` ` (Expensive)
-- Speed padded to 4 chars: `󱐋  ` (Slow), `󱐋󱐋 ` (Normal), `󱐋󱐋󱐋` (Fast)
+- Quality padded to 4 chars: `--- ` (Basic), `󰫣   ` (Good), `󰫣󰫣  ` (Very Good), `󰫣󰫣󰫣 ` (Excellent)
+- Cost padded to 4 chars: `--- ` (Free only when cost is `0`), `   ` (Economic), `  ` (Normal), ` ` (Expensive)
+- Speed padded to 4 chars: `--- ` (Unknown only when speed is missing), `󱐋  ` (Slow), `󱐋󱐋 ` (Normal), `󱐋󱐋󱐋` (Fast)
 - Example: `[󰫣󰫣 |   | 󱐋󱐋 ] Reasoning architect for decomposition and design decisions`
 
 ### 9. Verify
@@ -283,7 +291,7 @@ All model assignments must come **exclusively** from models confirmed in step 1.
 - No duplicate models across agents ✅
 - All agent descriptions have `[quality | cost | speed]` indicators ✅
 - Scale calculation ran on selected models only ✅
-- Icons assigned by range thirds (1/3 → 1 icon, 2/3 → 2 icons, 3/3 → 3 icons) ✅
+- Icons assigned by range quarters (Q1 → `---`, Q2 → 1 icon, Q3 → 2 icons, Q4 → 3 icons) ✅
 - All assigned models came from `opencode models` output ✅
 - **All model identifiers match `opencode models` output character-for-character** ✅
 - Audit report saved to `docs/agent-audits/YYYY-MM-DD.md` ✅

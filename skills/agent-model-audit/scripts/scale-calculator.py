@@ -9,15 +9,15 @@ import sys
 DIMENSIONS = ("intelligence", "cost", "speed")
 
 ICONS = {
-    "intelligence": {1: "󰫣   ", 2: "󰫣󰫣  ", 3: "󰫣󰫣󰫣 "},
-    "cost": {1: "   ", 2: "  ", 3: " "},
-    "speed": {1: "󱐋  ", 2: "󱐋󱐋 ", 3: "󱐋󱐋󱐋"},
+    "intelligence": {0: "--- ", 1: "󰫣   ", 2: "󰫣󰫣  ", 3: "󰫣󰫣󰫣 "},
+    "cost":         {0: "--- ", 1: "   ", 2: "  ", 3: " "},
+    "speed":        {0: "--- ", 1: "󱐋  ", 2: "󱐋󱐋 ", 3: "󱐋󱐋󱐋"},
 }
 
 LABELS = {
-    "intelligence": {1: "Good", 2: "Very Good", 3: "Excellent"},
-    "cost": {1: "Economic", 2: "Normal", 3: "Expensive"},
-    "speed": {1: "Slow", 2: "Normal", 3: "Fast"},
+    "intelligence": {0: "Basic", 1: "Good", 2: "Very Good", 3: "Excellent"},
+    "cost":         {0: "Free", 1: "Economic", 2: "Normal", 3: "Expensive"},
+    "speed":        {0: "Unknown", 1: "Slow", 2: "Normal", 3: "Fast"},
 }
 
 
@@ -61,52 +61,109 @@ def validate_model_data(model_data):
     for model, values in model_data.items():
         for dimension in DIMENSIONS:
             value = values.get(dimension)
+            if dimension == "speed" and value is None:
+                continue
             if not isinstance(value, (int, float)):
                 raise ValueError(f"{model}.{dimension} must be numeric")
 
 
-def tier_for(value, first_boundary, second_boundary):
-    if value < first_boundary:
-        return 1
-    if value < second_boundary:
-        return 2
-    return 3
+def build_scale_info(values, segments):
+    if not values:
+        return {
+            "min": None,
+            "max": None,
+            "range": 0,
+            **{f"q{index}_boundary": None for index in range(1, segments)},
+        }
 
-
-def scale_info(values):
     minimum = min(values)
     maximum = max(values)
     span = maximum - minimum
-    third = span / 3.0 if span else 0
-    return {
+    step = span / float(segments) if span else 0
+
+    info = {
         "min": minimum,
         "max": maximum,
         "range": span,
-        "t1_boundary": minimum + third,
-        "t2_boundary": minimum + 2 * third,
     }
+    for index in range(1, segments):
+        info[f"q{index}_boundary"] = minimum + (step * index if span else 0)
+
+    return info
+
+
+def tier_from_boundaries(value, boundaries):
+    for index, boundary in enumerate(boundaries):
+        if value < boundary:
+            return index
+    return len(boundaries)
+
+
+def tier_for_scaled_value(value, info, segments, fallback_tier):
+    if info["min"] is None or info["range"] == 0:
+        return fallback_tier
+
+    boundaries = [info[f"q{index}_boundary"] for index in range(1, segments)]
+    return tier_from_boundaries(value, boundaries)
+
+
+def tier_for_nonzero_scale(value, info, segments, fallback_tier):
+    if info["min"] is None:
+        return fallback_tier
+    if info["range"] == 0:
+        return fallback_tier
+
+    boundaries = [info[f"q{index}_boundary"] for index in range(1, segments)]
+    return tier_from_boundaries(value, boundaries) + 1
+
+
+def scale_info(values):
+    return build_scale_info(values, 4)
 
 
 def calculate(model_data):
+    intelligence_values = [values["intelligence"] for values in model_data.values()]
+    cost_values = [values["cost"] for values in model_data.values()]
+    speed_values = [values.get("speed") for values in model_data.values()]
+
     scale = {
-        dimension: scale_info([values[dimension] for values in model_data.values()])
-        for dimension in DIMENSIONS
+        "intelligence": scale_info(intelligence_values),
+        "cost": scale_info([value for value in cost_values if value > 0]),
+        "speed": scale_info([value for value in speed_values if value is not None]),
+        "cost_free_count": sum(1 for value in cost_values if value == 0),
+        "speed_unknown_count": sum(1 for value in speed_values if value is None),
     }
 
     results = {}
     for model, values in model_data.items():
         results[model] = {}
-        for dimension in DIMENSIONS:
-            info = scale[dimension]
-            tier = 2 if info["range"] == 0 else tier_for(
-                values[dimension], info["t1_boundary"], info["t2_boundary"]
-            )
-            results[model][dimension] = {
-                "value": values[dimension],
-                "tier": tier,
-                "icon": ICONS[dimension][tier],
-                "label": LABELS[dimension][tier],
-            }
+        intelligence_info = scale["intelligence"]
+        intelligence_tier = tier_for_scaled_value(values["intelligence"], intelligence_info, 4, 1)
+        results[model]["intelligence"] = {
+            "value": values["intelligence"],
+            "tier": intelligence_tier,
+            "icon": ICONS["intelligence"][intelligence_tier],
+            "label": LABELS["intelligence"][intelligence_tier],
+        }
+
+        cost_info = scale["cost"]
+        cost_tier = 0 if values["cost"] == 0 else tier_for_nonzero_scale(values["cost"], cost_info, 3, 2)
+        results[model]["cost"] = {
+            "value": values["cost"],
+            "tier": cost_tier,
+            "icon": ICONS["cost"][cost_tier],
+            "label": LABELS["cost"][cost_tier],
+        }
+
+        speed_value = values.get("speed")
+        speed_info = scale["speed"]
+        speed_tier = 0 if speed_value is None else tier_for_nonzero_scale(speed_value, speed_info, 3, 2)
+        results[model]["speed"] = {
+            "value": speed_value,
+            "tier": speed_tier,
+            "icon": ICONS["speed"][speed_tier],
+            "label": LABELS["speed"][speed_tier],
+        }
 
     return {"scale": scale, "models": results}
 
@@ -122,22 +179,39 @@ def render_text(output):
     ]
 
     for model, result in output["models"].items():
+        speed_value = result["speed"]["value"]
+        speed_display = f"{speed_value:<4}" if speed_value is not None else "--- "
         lines.append(
             f"{model:<22} "
             f"{result['intelligence']['value']:<4} {result['intelligence']['icon']:<12} "
             f"${result['cost']['value']:<8.2f} {result['cost']['icon']:<10} "
-            f"{result['speed']['value']:<4} {result['speed']['icon']:<10}"
+            f"{speed_display:<4} {result['speed']['icon']:<10}"
         )
 
     lines.append("")
     lines.append(f"Scale calculation for {len(output['models'])} selected models:")
     for dimension, info in output["scale"].items():
+        if dimension == "cost_free_count" or dimension == "speed_unknown_count":
+            continue
+        if info["min"] is None:
+            if dimension == "cost":
+                lines.append("  Cost            no positive-cost models  free=all")
+            elif dimension == "speed":
+                lines.append("  Speed           no known-speed models    unknown=all")
+            continue
+
+        extra = ""
+        if dimension == "cost":
+            extra = f"  free={output['scale']['cost_free_count']}"
+        elif dimension == "speed":
+            extra = f"  unknown={output['scale']['speed_unknown_count']}"
         lines.append(
             f"  {dimension.title():<15} min={info['min']:.2f}  "
             f"max={info['max']:.2f}  range={info['range']:.2f}  "
-            f"T1 < {info['t1_boundary']:.2f}  "
-            f"T2 < {info['t2_boundary']:.2f}  "
-            f"T3 >= {info['t2_boundary']:.2f}"
+            f"Q1 < {info['q1_boundary']:.2f}  "
+            f"Q2 < {info['q2_boundary']:.2f}  "
+            f"Q3 < {info['q3_boundary']:.2f}  "
+            f"Q4 >= {info['q3_boundary']:.2f}{extra}"
         )
 
     return "\n".join(lines)

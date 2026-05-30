@@ -9,6 +9,7 @@ __pycache__/
 
 docs/superpowers/
 docs/agent-audits/
+skills/agent-model-audit/*.json
 opencode-notifier-state.json
 
 .playwright-mcp

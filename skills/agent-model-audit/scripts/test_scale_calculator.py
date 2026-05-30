@@ -51,6 +51,38 @@ class ScaleCalculatorCliTest(unittest.TestCase):
         self.assertEqual(output["models"]["fast"]["intelligence"]["icon"], "󰫣󰫣󰫣 ")
         self.assertEqual(output["models"]["fast"]["intelligence"]["label"], "Excellent")
 
+        slow_intel = output["models"]["slow"]["intelligence"]
+        self.assertEqual(slow_intel["tier"], 0)
+        self.assertEqual(slow_intel["icon"], "--- ")
+        self.assertEqual(slow_intel["label"], "Basic")
+
+    def test_cost_zero_and_missing_speed_use_special_tier_zero(self):
+        data = {
+            "models": {
+                "free": {"intelligence": 50, "cost": 0.0},
+                "cheap": {"intelligence": 75, "cost": 5.0, "speed": 50},
+                "fast": {"intelligence": 100, "cost": 10.0, "speed": 100},
+            }
+        }
+
+        result = self.run_script(data, None, "--format", "json")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = json.loads(result.stdout)
+
+        self.assertEqual(output["models"]["free"]["cost"]["tier"], 0)
+        self.assertEqual(output["models"]["free"]["cost"]["icon"], "--- ")
+        self.assertEqual(output["models"]["free"]["cost"]["label"], "Free")
+
+        self.assertEqual(output["models"]["free"]["speed"]["tier"], 0)
+        self.assertEqual(output["models"]["free"]["speed"]["icon"], "--- ")
+        self.assertEqual(output["models"]["free"]["speed"]["label"], "Unknown")
+
+        self.assertEqual(output["models"]["cheap"]["cost"]["tier"], 1)
+        self.assertEqual(output["models"]["fast"]["cost"]["tier"], 3)
+        self.assertEqual(output["models"]["cheap"]["speed"]["tier"], 1)
+        self.assertEqual(output["models"]["fast"]["speed"]["tier"], 3)
+
     def test_text_header_does_not_escape_dollar_sign(self):
         data = {"models": {"known": {"intelligence": 80, "cost": 1.0, "speed": 100}}}
 
