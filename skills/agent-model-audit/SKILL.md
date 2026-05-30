@@ -91,7 +91,7 @@ For each confirmed-available model, extract the following **numeric** values fro
 
 > **Important:** These must be actual numeric values from research, not subjective categories. If exact numbers aren't available, estimate conservatively and note the source.
 
-Record the data in a structured JSON file for later use with the scale calculator script. Example:
+Record the data in a structured JSON file at `docs/agent-audits/model-data.json` for later use with the scale calculator script. Example:
 
 ```json
 {
@@ -147,6 +147,8 @@ Assign each agent a model from the step-1 list. Apply the **Priority Mode** from
 - **No assignment left blank** — every agent must have a model
 - **Exact identifier match** — model names must be copied verbatim from step 1 output, including all hyphens, dots, and version numbers. Never modify, normalize, or guess identifiers.
 
+Save the resulting assignments to `docs/agent-audits/assignments.json` for use in step 6.
+
 ### 6. Calculate Scale-Based Indicators
 
 After assigning models to all agents (step 5), compute the quality, cost, and speed indicators **relative to the selected set of models only**.
@@ -155,10 +157,10 @@ Run the scale calculator script with your collected data and assignments:
 
 ```bash
 python skills/agent-model-audit/scripts/scale-calculator.py \
-  --data path/to/model-data.json \
-  --assignments path/to/assignments.json \
+  --data docs/agent-audits/model-data.json \
+  --assignments docs/agent-audits/assignments.json \
   --format json \
-  --output path/to/scale-results.json
+  --output docs/agent-audits/scale-results.json
 ```
 
 The JSON output contains `value`, `tier`, `icon`, and `label` for each dimension of each selected model.
