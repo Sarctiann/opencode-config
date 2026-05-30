@@ -14,9 +14,9 @@
   },
 
   "enableToast": true,
-  "toastDurationMs": 9000,
-  "showOnIdle": true,
-  "showOnQuestion": false,
+  "toastDurationMs": 3000,
+  "showOnIdle": false,
+  "showOnQuestion": true,
   "showOnCompact": true,
   "showOnBothFail": true,
 
